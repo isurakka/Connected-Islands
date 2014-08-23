@@ -42,12 +42,25 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game.cs" />
+    <Compile Include="GameObject.cs" />
+    <Compile Include="OverWorld.cs" />
+    <Compile Include="Player.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResourceManager.cs" />
+    <Compile Include="Tile.cs" />
+    <Compile Include="Utility.cs" />
+    <Compile Include="World.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="assets\overworld.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\tilemap.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="csfml-graphics-2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -59,10 +72,6 @@
     <ProjectReference Include="..\SFML.Net\src\Graphics\sfml-graphics.csproj">
       <Project>{46786269-57b9-48e7-aa4f-8f4d84609fe6}</Project>
       <Name>sfml-graphics</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SFML.Net\src\System\sfml-system.csproj">
-      <Project>{31d24303-f6a9-4d53-bb03-a73edcb3186d}</Project>
-      <Name>sfml-system</Name>
     </ProjectReference>
     <ProjectReference Include="..\SFML.Net\src\Window\sfml-window.csproj">
       <Project>{d17de83d-a592-461f-8af2-53f9e22e1d0f}</Project>
