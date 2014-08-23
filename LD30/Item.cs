@@ -24,6 +24,19 @@ namespace LD30
             }
         }
 
+        public virtual List<string> RightClickOptions
+        {
+            get { return new List<string>() { "Combine", "Drop" }; }
+        }
+
+        public FloatRect WorldRect
+        {
+            get
+            {
+                return new FloatRect(Position.X, Position.Y, Game.TileSize, Game.TileSize);
+            }
+        }
+
         public Item(Game game, Sprite spr)
             : base(game)
         {

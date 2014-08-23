@@ -18,6 +18,10 @@ namespace LD30
             {
                 resources.Add(name, new Image(path));
             }
+            else if (type == typeof(Font))
+            {
+                resources.Add(name, new Font(path));
+            }
             else
             {
                 throw new ArgumentException("Tried to load resource which doesn't exist.");

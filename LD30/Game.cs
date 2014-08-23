@@ -25,6 +25,7 @@ namespace LD30
         OverWorld overWorld;
         Player player;
         Inventory inventory;
+        MouseMenu mouseMenu;
 
         public Game()
             : base(null)
@@ -43,6 +44,8 @@ namespace LD30
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "bottleSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 2, 6));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "scrollSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 3, 6));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "treeSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 5, 2, 3));
+
+            ResourceManager.LoadResource<Font>("assets/HelvetiPixel.ttf", "font");
 
             ResourceManager.LoadResource<Image>("assets/overworld.png", "overworldImg");
 
@@ -72,6 +75,20 @@ namespace LD30
                 gameObjects.Add(layer, new List<GameObject>());
 
             gameObjects[layer].Add(obj);
+        }
+
+        public void Remove(GameObject obj)
+        {
+            foreach (var pair in gameObjects)
+            {
+                if (pair.Value.Contains(obj))
+                {
+                    pair.Value.Remove(obj);
+                    return;
+                }
+            }
+
+            throw new ArgumentException("Couldn't find the specified object");
         }
 
         public void Run()
@@ -144,6 +161,69 @@ namespace LD30
                 player.SpeedModifier = 1f;
                 player.HalfVertical = false;
             }
+
+            processUI();
+        }
+
+        bool lastMouseRightDown = false;
+        bool lastMouseLeftDown = false;
+
+        private void processUI()
+        {
+            var mousePos = MainWindow.MapPixelToCoords(Mouse.GetPosition(MainWindow), MainWindow.DefaultView);
+            //var mousePosF = new Vector2f(mousePos.X, mousePos.Y);
+            bool mouseRightDown = Mouse.IsButtonPressed(Mouse.Button.Right);
+            bool mouseLeftDown = Mouse.IsButtonPressed(Mouse.Button.Left);
+
+            // Just pressed right mouse button
+            if (mouseRightDown && !lastMouseRightDown)
+            {
+                Item clickedItem = null;
+                foreach (var item in inventory.Items)
+                {
+                    if (item.WorldRect.Contains(mousePos.X, mousePos.Y) && (mouseMenu == null || mouseMenu.HoverIndex == -1))
+                    {
+                        clickedItem = item;
+                        break;
+                    }
+                }
+
+                if (clickedItem != null)
+                {
+                    if (mouseMenu != null)
+                    {
+                        Remove(mouseMenu);
+                    }
+
+                    mouseMenu = new MouseMenu(game);
+                    mouseMenu.Options = clickedItem.RightClickOptions;
+                    mouseMenu.Position = mousePos;
+                    Add(mouseMenu, 1000);
+                }
+            }
+
+            if (mouseMenu != null)
+            {
+                mouseMenu.HoverIndex = -1;
+                for (int i = 0; i < mouseMenu.Options.Count; i++)
+                {
+                    if (mouseMenu.GetRectForOption(i).Contains(mousePos.X, mousePos.Y))
+                    {
+                        mouseMenu.HoverIndex = i;
+
+                        // Pressed left mouse button on option
+                        if (mouseLeftDown && !lastMouseLeftDown)
+                        {
+                            Remove(mouseMenu);
+                            mouseMenu = null;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            lastMouseRightDown = mouseRightDown;
         }
 
         public override void Draw(RenderTarget target)

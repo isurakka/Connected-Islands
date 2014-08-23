@@ -9,6 +9,17 @@ namespace LD30
 {
     class Scroll : Item
     {
+        public override List<string> RightClickOptions
+        {
+            get 
+            {
+                var baseOptions = base.RightClickOptions;
+                var myOptions = new List<string>() { "Write a message" };
+                myOptions.AddRange(baseOptions);
+                return myOptions;
+            }
+        }
+
         public Scroll(Game game)
             : base(game, new Sprite(ResourceManager.GetResource<Sprite>("scrollSpr")))
         {
