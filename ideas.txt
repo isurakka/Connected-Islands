@@ -1,0 +1,23 @@
+Connected Worlds
+
+Stranded on island
+	- Explore island and its landmarks
+	- Find items
+	- Send messages and items online through bottles or other means ( PHP server probably easiest to implement)
+	- Find messages from other people playing the game
+		- You can store the found message in your inventory
+		- Messages have view count in them
+		- You can send the message forward and see the view count rise
+	Places
+		Island
+			Climbable tree
+			Leave message in bottle
+			Lions
+				Bait lion with meat to distract it in order to get something cool
+		Sea
+			Boat
+			Sharks
+			Find shipwreks of other dead people and loot them
+			Leave message in bottle
+		Caves
+			Rock push puzzle
