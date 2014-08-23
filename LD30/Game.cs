@@ -81,6 +81,8 @@ namespace LD30
 
         public override void Update(float dt)
         {
+            var oldPlayerPos = player.Position;
+
             foreach (var pair in gameObjects)
             {
                 foreach (var obj in pair.Value)
@@ -89,6 +91,74 @@ namespace LD30
                 }
             }
 
+            var newPlayerPos = player.Position;
+            var playerDir = newPlayerPos - oldPlayerPos;
+
+            var playerLocalPos = new Vector2i(
+                (int)Math.Floor(player.WorldCenter.X * (1f / Game.TileSize)),
+                (int)Math.Floor(player.WorldCenter.Y * (1f / Game.TileSize)));
+
+            Debug.WriteLine(playerLocalPos);
+
+            var upLocal = playerLocalPos + new Vector2i(0, -1);
+            var upRect = overWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(0, -1));
+            var downLocal = playerLocalPos + new Vector2i(0, 1);
+            var downRect = overWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(0, 1));
+
+            var leftLocal = playerLocalPos + new Vector2i(-1, 0);
+            var leftRect = overWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(-1, 0));
+            var rightLocal = playerLocalPos + new Vector2i(1, 0);
+            var rightRect = overWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(1, 0));
+
+            var playerRect = new FloatRect(player.Position.X, player.Position.Y, Game.TileSize, Game.TileSize);
+            if (overWorld.Collisions[upLocal.X, upLocal.Y] && playerRect.Intersects(upRect))
+                player.Position += new Vector2f(0f, -(player.Position.Y - (upRect.Top + upRect.Height)));
+            if (overWorld.Collisions[downLocal.X, downLocal.Y] && playerRect.Intersects(downRect))
+                player.Position += new Vector2f(0f, -(player.Position.Y + Game.TileSize - downRect.Top));
+            if (overWorld.Collisions[leftLocal.X, leftLocal.Y] && playerRect.Intersects(leftRect))
+                player.Position += new Vector2f(-(player.Position.X - (leftRect.Left + leftRect.Width)), 0f);
+            if (overWorld.Collisions[rightLocal.X, rightLocal.Y] && playerRect.Intersects(rightRect))
+                player.Position += new Vector2f(-(player.Position.X + Game.TileSize - rightRect.Left), 0f);
+            
+
+            /*
+            var rects = new List<FloatRect>(); ;
+            if (overWorld.Collisions[upLocal.X, upLocal.Y])
+                rects.Add(upRect);
+            if (overWorld.Collisions[downLocal.X, downLocal.Y])
+                rects.Add(downRect);
+            if (overWorld.Collisions[leftLocal.X, leftLocal.Y])
+                rects.Add(leftRect);
+            if (overWorld.Collisions[rightLocal.X, rightLocal.Y])
+                rects.Add(rightRect);
+
+            var lastDimension = oldPlayerPos.X;
+            for (float i = 0; i < Math.Abs(playerDir.X); i += 0.001f)
+            {
+                var dimension = player.Position.X + i * Math.Sign(playerDir.X);
+                var playerRect = new FloatRect(dimension, player.Position.Y, Game.TileSize, Game.TileSize);
+                if (rects.Any(rect => playerRect.Intersects(rect)))
+                {
+                    player.Position = new Vector2f(lastDimension, player.Position.Y);
+                    break;
+                }
+                lastDimension = dimension;
+            }
+
+            lastDimension = oldPlayerPos.Y;
+            for (float i = 0; i < Math.Abs(playerDir.Y); i += 0.001f)
+            {
+                var dimension = player.Position.Y + i * Math.Sign(playerDir.Y);
+                var playerRect = new FloatRect(player.Position.X, dimension, Game.TileSize, Game.TileSize);
+                if (rects.Any(rect => playerRect.Intersects(rect)))
+                {
+                    player.Position = new Vector2f(player.Position.X, lastDimension);
+                    break;
+                }
+                lastDimension = dimension;
+            }
+            */
+            
             var color = overWorld.GetColorAtWorldPosition(player.WorldCenter);
             if (Utility.ColorEquals(color, Color.Blue))
             {

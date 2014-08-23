@@ -69,7 +69,7 @@ namespace LD30
             }
         }
 
-        public float Speed = 1000f;
+        public float Speed = 800f;
         public float SpeedModifier = 1f;
 
         public Player(Game game, Sprite spr)
@@ -92,9 +92,8 @@ namespace LD30
                 dir.X += 1f;
 
             dir = dir.Normalize() * Speed * SpeedModifier * dt;
-            Position += dir;
 
-            Debug.WriteLine(Position);
+            Position += dir;
         }
 
         public override void Draw(RenderTarget target)

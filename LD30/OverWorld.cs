@@ -17,14 +17,16 @@ namespace LD30
         {
             SpawnPosition = findFirstWorldPositionForColor(Color.Black);
 
-            foreach (var treePos in findAllWorldPositionForColor(new Color(127, 64, 0)))
+            foreach (var treePos in findAllLocalPositionsForColor(new Color(127, 64, 0)))
             {
                 var spr = new Sprite(ResourceManager.GetResource<Sprite>("treeSpr"));
                 spr.Scale = new Vector2f(Game.TilemapScale, Game.TilemapScale);
                 var tree = new Tree(game, spr);
-                tree.Position = treePos;
+                tree.Position = new Vector2f(treePos.X * Game.TileSize, treePos.Y * Game.TileSize);
                
                 game.Add(tree, 1);
+                Collisions[treePos.X, treePos.Y] = true;
+                Collisions[treePos.X + 1, treePos.Y] = true;
             }
         }
 

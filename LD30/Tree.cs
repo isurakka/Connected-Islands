@@ -20,7 +20,7 @@ namespace LD30
             }
             set
             {
-                sprite.Position = value + new Vector2f(0f, -Game.TileSize * 3);
+                sprite.Position = value + new Vector2f(0f, -Game.TileSize * 2);
             }
         }
 

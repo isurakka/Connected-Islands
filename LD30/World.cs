@@ -11,7 +11,7 @@ namespace LD30
 {
     abstract class World : GameObject
     {
-        Tile[,] tiles;
+        public bool[,] Collisions;
         VertexArray tileVA;
         Image worldImage;
 
@@ -45,6 +45,8 @@ namespace LD30
                     tileVA.Append(botLeft);
                 }
             }
+
+            Collisions = new bool[worldImage.Size.X, worldImage.Size.Y];
         }
 
         protected Vector2f findFirstWorldPositionForColor(Color findColor)
@@ -62,26 +64,42 @@ namespace LD30
             throw new ArgumentException("Couldn't find the specified color");
         }
 
-        protected List<Vector2f> findAllWorldPositionForColor(Color findColor)
+        protected List<Vector2i> findAllLocalPositionsForColor(Color findColor)
         {
-            var finds = new List<Vector2f>();
+            var finds = new List<Vector2i>();
             for (int x = 0; x < worldImage.Size.X; x++)
             {
                 for (int y = 0; y < worldImage.Size.Y; y++)
                 {
                     var color = worldImage.GetPixel((uint)x, (uint)y);
                     if (Utility.ColorEquals(color, findColor))
-                        finds.Add(new Vector2f(x * Game.TileSize, y * Game.TileSize));
+                        finds.Add(new Vector2i(x, y));
                 }
+            }
+            return finds;
+        }
+
+        protected List<Vector2f> findAllWorldPositionsForColor(Color findColor)
+        {
+            var findsLocal = findAllLocalPositionsForColor(findColor);
+            var finds = new List<Vector2f>();
+            for (int i = 0; i < findsLocal.Count; i++)
+            {
+                finds.Add(new Vector2f(findsLocal[i].X * Game.TileSize, findsLocal[i].Y * Game.TileSize));
             }
             return finds;
         }
 
         public Color GetColorAtWorldPosition(Vector2f worldPos)
         {
-            var localPos = worldPos * 1f / Game.TileSize;
+            var localPos = worldPos * (1f / Game.TileSize);
             var color = worldImage.GetPixel((uint)Math.Floor(localPos.X), (uint)Math.Floor(localPos.Y));
             return color;
+        }
+
+        public FloatRect GetWorldFloatRectForTile(Vector2i coords)
+        {
+            return new FloatRect(coords.X * Game.TileSize, coords.Y * Game.TileSize, Game.TileSize, Game.TileSize);
         }
 
         public override void Draw(RenderTarget target)
