@@ -14,39 +14,18 @@ namespace LD30
         public bool[,] Collisions;
         VertexArray tileVA;
         Image worldImage;
+        RenderStates states = RenderStates.Default;
 
         public World(Game game, Image worldImage)
             : base(game)
         {
             this.worldImage = worldImage;
             tileVA = new VertexArray(PrimitiveType.Quads, worldImage.Size.X * worldImage.Size.Y * 4);
-            for (int x = 0; x < worldImage.Size.X; x++)
-            {
-                for (int y = 0; y < worldImage.Size.Y; y++)
-                {
-                    var color = worldImage.GetPixel((uint)x, (uint)y);
-                    var pos = getTilemapPositionForColor(color);
-                    var topLeft = new Vertex(
-                        new Vector2f(x * Game.TilemapSize, y * Game.TilemapSize), 
-                        pos);
-                    var topRight = new Vertex(
-                        new Vector2f((x + 1) * Game.TilemapSize, y * Game.TilemapSize), 
-                        pos + new Vector2f(Game.TilemapSize, 0f));
-                    var botRight = new Vertex(
-                        new Vector2f((x + 1) * Game.TilemapSize, (y + 1) * Game.TilemapSize), 
-                        pos + new Vector2f(Game.TilemapSize, Game.TilemapSize));
-                    var botLeft = new Vertex(
-                        new Vector2f(x * Game.TilemapSize, (y + 1) * Game.TilemapSize), 
-                        pos + new Vector2f(0f, Game.TilemapSize));
-
-                    tileVA.Append(topLeft);
-                    tileVA.Append(topRight);
-                    tileVA.Append(botRight);
-                    tileVA.Append(botLeft);
-                }
-            }
-
+            
             Collisions = new bool[worldImage.Size.X, worldImage.Size.Y];
+
+            states.Transform.Scale(Game.TilemapScale, Game.TilemapScale);
+            states.Texture = ResourceManager.GetResource<Texture>("tilemapTex");
         }
 
         protected Vector2f findFirstWorldPositionForColor(Color findColor)
@@ -104,9 +83,40 @@ namespace LD30
 
         public override void Draw(RenderTarget target)
         {
-            var states = RenderStates.Default;
-            states.Transform.Scale(Game.TilemapScale, Game.TilemapScale);
-            states.Texture = ResourceManager.GetResource<Texture>("tilemapTex");
+            var topLeftView = target.MapPixelToCoords(new Vector2i());
+            var botRightView = target.MapPixelToCoords(new Vector2i((int)game.MainWindow.Size.X - 1, (int)game.MainWindow.Size.Y - 1));
+            var viewRect = new FloatRect(topLeftView.X, topLeftView.Y, botRightView.X - topLeftView.X, botRightView.Y - topLeftView.Y);
+
+            var topLeftLocal = new Vector2i((int)Math.Floor(topLeftView.X / Game.TileSize), (int)Math.Floor(topLeftView.Y / Game.TileSize));
+            var botRightLocal = new Vector2i((int)Math.Ceiling(botRightView.X / Game.TileSize), (int)Math.Ceiling(botRightView.Y / Game.TileSize));
+
+            tileVA.Clear();
+            for (int x = topLeftLocal.X; x < botRightLocal.X; x++)
+            {
+                for (int y = topLeftLocal.Y; y < botRightLocal.Y; y++)
+                {
+                    var color = worldImage.GetPixel((uint)x, (uint)y);
+                    var pos = getTilemapPositionForColor(color);
+                    var topLeft = new Vertex(
+                        new Vector2f(x * Game.TilemapSize, y * Game.TilemapSize),
+                        pos);
+                    var topRight = new Vertex(
+                        new Vector2f((x + 1) * Game.TilemapSize, y * Game.TilemapSize),
+                        pos + new Vector2f(Game.TilemapSize, 0f));
+                    var botRight = new Vertex(
+                        new Vector2f((x + 1) * Game.TilemapSize, (y + 1) * Game.TilemapSize),
+                        pos + new Vector2f(Game.TilemapSize, Game.TilemapSize));
+                    var botLeft = new Vertex(
+                        new Vector2f(x * Game.TilemapSize, (y + 1) * Game.TilemapSize),
+                        pos + new Vector2f(0f, Game.TilemapSize));
+
+                    tileVA.Append(topLeft);
+                    tileVA.Append(topRight);
+                    tileVA.Append(botRight);
+                    tileVA.Append(botLeft);
+                }
+            }
+
             target.Draw(tileVA, states);
         }
 
