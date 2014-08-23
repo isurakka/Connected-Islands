@@ -24,11 +24,12 @@ namespace LD30
         SortedDictionary<int, List<GameObject>> gameObjects = new SortedDictionary<int, List<GameObject>>();
         OverWorld overWorld;
         Player player;
+        Inventory inventory;
 
         public Game()
             : base(null)
         {
-            MainWindow = new RenderWindow(new VideoMode(1600, 900), "LD30", Styles.Close, new ContextSettings() { AntialiasingLevel = 0 });
+            MainWindow = new RenderWindow(new VideoMode(1600, 900), "LD30", Styles.Close, new ContextSettings() { AntialiasingLevel = 8 });
             MainWindow.SetFramerateLimit(240u);
         }
 
@@ -39,6 +40,8 @@ namespace LD30
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "playerSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 4));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "rockSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 1, 4));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "flowerSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 2, 4));
+            ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "bottleSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 2, 6));
+            ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "scrollSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 3, 6));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "treeSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 5, 2, 3));
 
             ResourceManager.LoadResource<Image>("assets/overworld.png", "overworldImg");
@@ -48,6 +51,15 @@ namespace LD30
 
             player = new Player(this, ResourceManager.GetResource<Sprite>("playerSpr"));
             Add(player, 1);
+
+            inventory = new Inventory(this);
+            Add(inventory, 2);
+
+            inventory.Items.Add(new Bottle(this));
+            inventory.Items.Add(new Bottle(this));
+            inventory.Items.Add(new Bottle(this));
+            inventory.Items.Add(new Scroll(this));
+            inventory.Items.Add(new Scroll(this));
 
             player.Position = overWorld.SpawnPosition;
 
