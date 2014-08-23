@@ -136,11 +136,18 @@ namespace LD30
 
         public override void Draw(RenderTarget target)
         {
+            var topLeftView = target.MapPixelToCoords(new Vector2i());
+            var botRightView = target.MapPixelToCoords(new Vector2i((int)MainWindow.Size.X - 1, (int)MainWindow.Size.Y - 1));
+            var viewRect = new FloatRect(topLeftView.X, topLeftView.Y, botRightView.X - topLeftView.X, botRightView.Y - topLeftView.Y);
+
             foreach (var pair in gameObjects)
             {
                 pair.Value.Sort(new Comparison<GameObject>((obj1, obj2) => (int)(obj1.Depth - obj2.Depth)));
                 foreach (var obj in pair.Value)
                 {
+                    if (obj.VisibleRect != null && !viewRect.Intersects(obj.VisibleRect.Value))
+                        continue;
+
                     obj.Draw(target);
                 }
             }

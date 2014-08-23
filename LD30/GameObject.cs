@@ -19,6 +19,14 @@ namespace LD30
             }
         }
 
+        public virtual FloatRect? VisibleRect
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         public GameObject(Game game)
         {
             this.game = game;

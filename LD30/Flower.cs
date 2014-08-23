@@ -32,6 +32,14 @@ namespace LD30
             }
         }
 
+        public override FloatRect? VisibleRect
+        {
+            get
+            {
+                return new FloatRect(Position.X, Position.Y, Game.TileSize, Game.TileSize);
+            }
+        }
+
         public Flower(Game game, Sprite spr)
             : base(game)
         {
