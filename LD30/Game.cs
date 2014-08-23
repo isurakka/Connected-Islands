@@ -29,6 +29,7 @@ namespace LD30
             : base(null)
         {
             MainWindow = new RenderWindow(new VideoMode(1600, 900), "LD30", Styles.Close, new ContextSettings() { AntialiasingLevel = 0 });
+            MainWindow.SetFramerateLimit(240u);
         }
 
         public Game Init()
@@ -36,6 +37,7 @@ namespace LD30
             ResourceManager.LoadResource<Image>("assets/tilemap.png", "tilemapImg");
             ResourceManager.DeriveResource<Image, Texture>("tilemapImg", "tilemapTex", s => new Texture(s));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "playerSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 4));
+            ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "rockSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 1, 4));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "treeSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 5, 2, 3));
 
             ResourceManager.LoadResource<Image>("assets/overworld.png", "overworldImg");
@@ -98,8 +100,6 @@ namespace LD30
                 (int)Math.Floor(player.WorldCenter.X * (1f / Game.TileSize)),
                 (int)Math.Floor(player.WorldCenter.Y * (1f / Game.TileSize)));
 
-            Debug.WriteLine(playerLocalPos);
-
             var upLocal = playerLocalPos + new Vector2i(0, -1);
             var upRect = overWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(0, -1));
             var downLocal = playerLocalPos + new Vector2i(0, 1);
@@ -119,45 +119,6 @@ namespace LD30
                 player.Position += new Vector2f(-(player.Position.X - (leftRect.Left + leftRect.Width)), 0f);
             if (overWorld.Collisions[rightLocal.X, rightLocal.Y] && playerRect.Intersects(rightRect))
                 player.Position += new Vector2f(-(player.Position.X + Game.TileSize - rightRect.Left), 0f);
-            
-
-            /*
-            var rects = new List<FloatRect>(); ;
-            if (overWorld.Collisions[upLocal.X, upLocal.Y])
-                rects.Add(upRect);
-            if (overWorld.Collisions[downLocal.X, downLocal.Y])
-                rects.Add(downRect);
-            if (overWorld.Collisions[leftLocal.X, leftLocal.Y])
-                rects.Add(leftRect);
-            if (overWorld.Collisions[rightLocal.X, rightLocal.Y])
-                rects.Add(rightRect);
-
-            var lastDimension = oldPlayerPos.X;
-            for (float i = 0; i < Math.Abs(playerDir.X); i += 0.001f)
-            {
-                var dimension = player.Position.X + i * Math.Sign(playerDir.X);
-                var playerRect = new FloatRect(dimension, player.Position.Y, Game.TileSize, Game.TileSize);
-                if (rects.Any(rect => playerRect.Intersects(rect)))
-                {
-                    player.Position = new Vector2f(lastDimension, player.Position.Y);
-                    break;
-                }
-                lastDimension = dimension;
-            }
-
-            lastDimension = oldPlayerPos.Y;
-            for (float i = 0; i < Math.Abs(playerDir.Y); i += 0.001f)
-            {
-                var dimension = player.Position.Y + i * Math.Sign(playerDir.Y);
-                var playerRect = new FloatRect(player.Position.X, dimension, Game.TileSize, Game.TileSize);
-                if (rects.Any(rect => playerRect.Intersects(rect)))
-                {
-                    player.Position = new Vector2f(player.Position.X, lastDimension);
-                    break;
-                }
-                lastDimension = dimension;
-            }
-            */
             
             var color = overWorld.GetColorAtWorldPosition(player.WorldCenter);
             if (Utility.ColorEquals(color, Color.Blue))
