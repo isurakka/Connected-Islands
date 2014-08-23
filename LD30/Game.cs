@@ -21,14 +21,14 @@ namespace LD30
         public const int TilemapScale = 3;
         public const int TileSize = TilemapSize * TilemapScale;
 
-        List<GameObject> gameObjects = new List<GameObject>();
+        SortedDictionary<int, List<GameObject>> gameObjects = new SortedDictionary<int, List<GameObject>>();
         OverWorld overWorld;
         Player player;
 
         public Game()
             : base(null)
         {
-            MainWindow = new RenderWindow(new VideoMode(1024, 768), "LD30", Styles.Close, new ContextSettings() { AntialiasingLevel = 0 });
+            MainWindow = new RenderWindow(new VideoMode(1600, 900), "LD30", Styles.Close, new ContextSettings() { AntialiasingLevel = 0 });
         }
 
         public Game Init()
@@ -36,18 +36,27 @@ namespace LD30
             ResourceManager.LoadResource<Image>("assets/tilemap.png", "tilemapImg");
             ResourceManager.DeriveResource<Image, Texture>("tilemapImg", "tilemapTex", s => new Texture(s));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "playerSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 4));
+            ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "treeSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 5, 2, 3));
 
             ResourceManager.LoadResource<Image>("assets/overworld.png", "overworldImg");
 
             overWorld = new OverWorld(this, ResourceManager.GetResource<Image>("overworldImg"));
-            gameObjects.Add(overWorld);
+            Add(overWorld);
 
             player = new Player(this, ResourceManager.GetResource<Sprite>("playerSpr"));
-            gameObjects.Add(player);
+            Add(player, 1);
 
             player.Position = overWorld.SpawnPosition;
 
             return this;
+        }
+
+        public void Add(GameObject obj, int layer = 0)
+        {
+            if (!gameObjects.ContainsKey(layer))
+                gameObjects.Add(layer, new List<GameObject>());
+
+            gameObjects[layer].Add(obj);
         }
 
         public void Run()
@@ -72,17 +81,36 @@ namespace LD30
 
         public override void Update(float dt)
         {
-            foreach (var obj in gameObjects)
+            foreach (var pair in gameObjects)
             {
-                obj.Update(dt);
+                foreach (var obj in pair.Value)
+                {
+                    obj.Update(dt);
+                }
+            }
+
+            var color = overWorld.GetColorAtWorldPosition(player.WorldCenter);
+            if (Utility.ColorEquals(color, Color.Blue))
+            {
+                player.SpeedModifier = 0.5f;
+                player.HalfVertical = true;
+            }
+            else
+            {
+                player.SpeedModifier = 1f;
+                player.HalfVertical = false;
             }
         }
 
         public override void Draw(RenderTarget target)
         {
-            foreach (var obj in gameObjects)
+            foreach (var pair in gameObjects)
             {
-                obj.Draw(target);
+                pair.Value.Sort(new Comparison<GameObject>((obj1, obj2) => (int)(obj1.Depth - obj2.Depth)));
+                foreach (var obj in pair.Value)
+                {
+                    obj.Draw(target);
+                }
             }
         }
     }

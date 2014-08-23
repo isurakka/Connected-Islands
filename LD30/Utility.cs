@@ -10,11 +10,11 @@ namespace LD30
 {
     static class Utility
     {
-        public static Sprite CreateSubSprite(Texture tex, int subWidth, int subHeight, int x, int y)
+        public static Sprite CreateSubSprite(Texture tex, int subWidth, int subHeight, int x, int y, int xTiles = 1, int yTiles = 1)
         {
             int texX = x * subWidth;
             int texY = y * subHeight;
-            return new Sprite(tex, new IntRect(texX, texY, subWidth, subHeight));
+            return new Sprite(tex, new IntRect(texX, texY, subWidth * xTiles, subHeight * yTiles));
         }
 
         public static bool ColorEquals(Color a, Color b)

@@ -2,6 +2,7 @@
 using SFML.Window;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -59,6 +60,28 @@ namespace LD30
             }
 
             throw new ArgumentException("Couldn't find the specified color");
+        }
+
+        protected List<Vector2f> findAllWorldPositionForColor(Color findColor)
+        {
+            var finds = new List<Vector2f>();
+            for (int x = 0; x < worldImage.Size.X; x++)
+            {
+                for (int y = 0; y < worldImage.Size.Y; y++)
+                {
+                    var color = worldImage.GetPixel((uint)x, (uint)y);
+                    if (Utility.ColorEquals(color, findColor))
+                        finds.Add(new Vector2f(x * Game.TileSize, y * Game.TileSize));
+                }
+            }
+            return finds;
+        }
+
+        public Color GetColorAtWorldPosition(Vector2f worldPos)
+        {
+            var localPos = worldPos * 1f / Game.TileSize;
+            var color = worldImage.GetPixel((uint)Math.Floor(localPos.X), (uint)Math.Floor(localPos.Y));
+            return color;
         }
 
         public override void Draw(RenderTarget target)

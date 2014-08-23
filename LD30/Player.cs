@@ -2,6 +2,7 @@
 using SFML.Window;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,7 +26,51 @@ namespace LD30
             }
         }
 
+        public Vector2f WorldCenter
+        {
+            get
+            {
+                return Position + new Vector2f(Game.TileSize / 2f, Game.TileSize / 2f);
+            }
+        }
+
+        bool halfVertical = false;
+        public bool HalfVertical
+        {
+            get
+            {
+                return halfVertical;
+            }
+            set
+            {
+                if (halfVertical == value)
+                    return;
+
+                var rect = sprite.TextureRect;
+                if (value)
+                {
+                    rect.Height = Game.TilemapSize / 2;
+                }
+                else
+                {
+                    rect.Height = Game.TilemapSize;
+                }
+                sprite.TextureRect = rect;
+
+                halfVertical = value;
+            }
+        }
+
+        public override float Depth
+        {
+            get
+            {
+                return Position.Y + Game.TileSize;
+            }
+        }
+
         public float Speed = 1000f;
+        public float SpeedModifier = 1f;
 
         public Player(Game game, Sprite spr)
             : base(game)
@@ -46,8 +91,10 @@ namespace LD30
             if (Keyboard.IsKeyPressed(Keyboard.Key.D))
                 dir.X += 1f;
 
-            dir = dir.Normalize() * Speed * dt;
+            dir = dir.Normalize() * Speed * SpeedModifier * dt;
             Position += dir;
+
+            Debug.WriteLine(Position);
         }
 
         public override void Draw(RenderTarget target)

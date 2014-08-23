@@ -11,6 +11,14 @@ namespace LD30
     {
         protected Game game;
 
+        public virtual float Depth
+        {
+            get
+            {
+                return 0f;
+            }
+        }
+
         public GameObject(Game game)
         {
             this.game = game;
