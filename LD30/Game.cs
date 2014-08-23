@@ -18,7 +18,8 @@ namespace LD30
 
         public RenderWindow MainWindow;
         public const int TilemapSize = 24;
-        public const int TileSize = TilemapSize * 3;
+        public const int TilemapScale = 3;
+        public const int TileSize = TilemapSize * TilemapScale;
 
         List<GameObject> gameObjects = new List<GameObject>();
         OverWorld overWorld;
@@ -34,15 +35,14 @@ namespace LD30
         {
             ResourceManager.LoadResource<Image>("assets/tilemap.png", "tilemapImg");
             ResourceManager.DeriveResource<Image, Texture>("tilemapImg", "tilemapTex", s => new Texture(s));
-            ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "grassSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 0));
-            ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "seaSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 1, 0));
+            ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "playerSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 4));
 
             ResourceManager.LoadResource<Image>("assets/overworld.png", "overworldImg");
 
             overWorld = new OverWorld(this, ResourceManager.GetResource<Image>("overworldImg"));
             gameObjects.Add(overWorld);
 
-            player = new Player(this);
+            player = new Player(this, ResourceManager.GetResource<Sprite>("playerSpr"));
             gameObjects.Add(player);
 
             player.Position = overWorld.SpawnPosition;
