@@ -27,6 +27,8 @@ namespace LD30
             }
         }
 
+        public bool Enabled = true;
+
         public GameObject(Game game)
         {
             this.game = game;

@@ -72,6 +72,8 @@ namespace LD30
         public float Speed = 800f;
         public float SpeedModifier = 1f;
 
+        public bool Input = true;
+
         public Player(Game game, Sprite spr)
             : base(game)
         {
@@ -81,6 +83,9 @@ namespace LD30
 
         public override void Update(float dt)
         {
+            if (!Input)
+                return;
+
             var dir = new Vector2f();
             if (Keyboard.IsKeyPressed(Keyboard.Key.W))
                 dir.Y -= 1f;

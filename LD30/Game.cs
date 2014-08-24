@@ -26,12 +26,14 @@ namespace LD30
         Player player;
         Inventory inventory;
         MouseMenu mouseMenu;
+        MessageModal messageModal;
 
         public Game()
             : base(null)
         {
             MainWindow = new RenderWindow(new VideoMode(1600, 900), "LD30", Styles.Close, new ContextSettings() { AntialiasingLevel = 8 });
             MainWindow.SetFramerateLimit(240u);
+            MainWindow.TextEntered += MainWindow_TextEntered;
         }
 
         public Game Init()
@@ -46,6 +48,10 @@ namespace LD30
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "treeSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 5, 2, 3));
 
             ResourceManager.LoadResource<Font>("assets/HelvetiPixel.ttf", "font");
+
+            ResourceManager.LoadResource<Image>("assets/message.png", "messageImg");
+            ResourceManager.DeriveResource<Image, Texture>("messageImg", "messageTex", s => new Texture(s));
+            ResourceManager.DeriveResource<Texture, Sprite>("messageTex", "messageSpr", s => new Sprite(s));
 
             ResourceManager.LoadResource<Image>("assets/overworld.png", "overworldImg");
 
@@ -181,7 +187,7 @@ namespace LD30
                 Item clickedItem = null;
                 foreach (var item in inventory.Items)
                 {
-                    if (item.WorldRect.Contains(mousePos.X, mousePos.Y) && (mouseMenu == null || mouseMenu.HoverIndex == -1))
+                    if (item.WorldRect.Contains(mousePos.X, mousePos.Y) && (mouseMenu == null || mouseMenu.HoverIndex == -1) && messageModal == null)
                     {
                         clickedItem = item;
                         break;
@@ -214,6 +220,14 @@ namespace LD30
                         // Pressed left mouse button on option
                         if (mouseLeftDown && !lastMouseLeftDown)
                         {
+                            if (mouseMenu.Options[mouseMenu.HoverIndex] == "Write a message")
+                            {
+                                var messageImg = ResourceManager.GetResource<Image>("messageImg");
+                                messageModal = new MessageModal(this, ResourceManager.GetResource<Sprite>("messageSpr"), new Vector2f(messageImg.Size.X, messageImg.Size.Y) * Game.TilemapScale);
+                                Add(messageModal, 1001);
+                                player.Input = false;
+                            }
+
                             Remove(mouseMenu);
                             mouseMenu = null;
                         }
@@ -223,7 +237,65 @@ namespace LD30
                 }
             }
 
+            if (messageModal != null)
+            {
+                if (mouseLeftDown && !lastMouseLeftDown)
+                {
+                    for (int i = 0; i < messageModal.MessageBox.LineCount; i++)
+                    {
+                        var rect = messageModal.MessageBox.GetRectForLine(i);
+
+                        if (rect.Contains(mousePos.X, mousePos.Y))
+                        {
+                            messageModal.MessageBox.WriteIndex = i;
+                            messageModal.CurrentTextbox = messageModal.MessageBox;
+                            break;
+                        }
+                    }
+
+                    for (int i = 0; i < messageModal.RegardsBox.LineCount; i++)
+                    {
+                        var rect = messageModal.RegardsBox.GetRectForLine(i);
+
+                        if (rect.Contains(mousePos.X, mousePos.Y))
+                        {
+                            messageModal.RegardsBox.WriteIndex = i;
+                            messageModal.CurrentTextbox = messageModal.RegardsBox;
+                            break;
+                        }
+                    }
+                }
+            }
+
             lastMouseRightDown = mouseRightDown;
+        }
+
+        void MainWindow_TextEntered(object sender, TextEventArgs e)
+        {
+            if (messageModal != null && messageModal.CurrentTextbox != null && messageModal.CurrentTextbox.WriteIndex != -1)
+            {
+                const string allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890.,-_:;!\"#¤%&/()=?+@£$€{[]}\'`´^* \b";
+
+                if (!allowedChars.Contains(e.Unicode))
+                    return;
+
+                if (e.Unicode == "\b" && messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex].Length > 0)
+                {
+                    messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex] = messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex].Remove(messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex].Length - 1, 1);
+                }
+                else
+                {
+                    messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex] += e.Unicode;
+                }
+
+                var text = messageModal.CurrentTextbox.GetTextForString(messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex]);
+                if (text.GetLocalBounds().Width > messageModal.CurrentTextbox.LineSize.X - messageModal.CurrentTextbox.Margin * 2f)
+                {
+                    messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex] = messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex].Remove(messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex].Length - 1, 1);
+                    if (messageModal.CurrentTextbox.WriteIndex != messageModal.CurrentTextbox.Lines.Length - 1)
+                        messageModal.CurrentTextbox.WriteIndex++;
+                }
+            }
         }
 
         public override void Draw(RenderTarget target)
