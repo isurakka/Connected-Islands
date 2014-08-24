@@ -264,6 +264,11 @@ namespace LD30
                             break;
                         }
                     }
+
+                    if (messageModal.SendButton.WorldRect.Contains(mousePos.X, mousePos.Y))
+                    {
+
+                    }
                 }
             }
 
