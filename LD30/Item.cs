@@ -37,6 +37,8 @@ namespace LD30
             }
         }
 
+        public bool Combining = false;
+
         public Item(Game game, Sprite spr)
             : base(game)
         {
@@ -47,6 +49,16 @@ namespace LD30
         public override void Draw(RenderTarget target)
         {
             target.Draw(sprite);
+            
+            if (Combining)
+            {
+                var rect = new RectangleShape(new Vector2f(Game.TileSize, Game.TileSize));
+                rect.FillColor = Color.Transparent;
+                rect.OutlineColor = Color.Red;
+                rect.OutlineThickness = -4f;
+                rect.Position = sprite.Position;
+                target.Draw(rect);
+            }
         }
     }
 }

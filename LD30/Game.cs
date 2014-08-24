@@ -27,12 +27,13 @@ namespace LD30
         Inventory inventory;
         MouseMenu mouseMenu;
         MessageModal messageModal;
+        MessageLog messageLog;
 
         public Game()
             : base(null)
         {
             MainWindow = new RenderWindow(new VideoMode(1600, 900), "LD30", Styles.Close, new ContextSettings() { AntialiasingLevel = 8 });
-            MainWindow.SetFramerateLimit(240u);
+            MainWindow.SetFramerateLimit(180u);
             MainWindow.TextEntered += MainWindow_TextEntered;
         }
 
@@ -67,8 +68,12 @@ namespace LD30
             inventory.Items.Add(new Bottle(this));
             inventory.Items.Add(new Bottle(this));
             inventory.Items.Add(new Bottle(this));
-            inventory.Items.Add(new Scroll(this));
-            inventory.Items.Add(new Scroll(this));
+            inventory.Items.Add(new Scroll(this, new Message()));
+            inventory.Items.Add(new Scroll(this, new Message()));
+
+            messageLog = new MessageLog(this);
+            messageLog.Position = new Vector2f(4f, MainWindow.Size.Y - 300f);
+            Add(messageLog, 1001);
 
             player.Position = overWorld.SpawnPosition;
 
@@ -173,6 +178,8 @@ namespace LD30
 
         bool lastMouseRightDown = false;
         bool lastMouseLeftDown = false;
+        Item clickedItem = null;
+        Item combiningItem = null;
 
         private void processUI()
         {
@@ -182,19 +189,23 @@ namespace LD30
             bool mouseLeftDown = Mouse.IsButtonPressed(Mouse.Button.Left);
 
             // Just pressed right mouse button
-            if (mouseRightDown && !lastMouseRightDown)
+            if (mouseRightDown && !lastMouseRightDown && messageModal == null)
             {
-                Item clickedItem = null;
+                bool openedMouseMenu = false;
                 foreach (var item in inventory.Items)
                 {
-                    if (item.WorldRect.Contains(mousePos.X, mousePos.Y) && (mouseMenu == null || mouseMenu.HoverIndex == -1) && messageModal == null)
+                    if (item.WorldRect.Contains(mousePos.X, mousePos.Y))
                     {
+                        if ((mouseMenu != null && mouseMenu.HoverIndex != -1))
+                            continue;
+
+                        openedMouseMenu = true;
                         clickedItem = item;
                         break;
                     }
                 }
 
-                if (clickedItem != null)
+                if (openedMouseMenu && clickedItem != null)
                 {
                     if (mouseMenu != null)
                     {
@@ -220,12 +231,34 @@ namespace LD30
                         // Pressed left mouse button on option
                         if (mouseLeftDown && !lastMouseLeftDown)
                         {
-                            if (mouseMenu.Options[mouseMenu.HoverIndex] == "Write a message")
+                            Scroll clickedScroll = clickedItem as Scroll;
+
+                            if (clickedScroll != null && mouseMenu.Options[mouseMenu.HoverIndex] == "Write a message")
                             {
                                 var messageImg = ResourceManager.GetResource<Image>("messageImg");
                                 messageModal = new MessageModal(this, ResourceManager.GetResource<Sprite>("messageSpr"), new Vector2f(messageImg.Size.X, messageImg.Size.Y) * Game.TilemapScale);
+                                for (int j = 0; j < 3; j++)
+                                {
+                                    messageModal.MessageBox.Lines[j] = clickedScroll.Message.Text[j];
+                                }
+                                messageModal.RegardsBox.Lines[0] = clickedScroll.Message.Regards;
                                 Add(messageModal, 1001);
                                 player.Input = false;
+                            }
+                            else if (mouseMenu.Options[mouseMenu.HoverIndex] == "Combine")
+                            {
+                                inventory.Items.ForEach(item => item.Combining = false);
+
+                                if (combiningItem != null)
+                                {
+                                    messageLog.AddMessage("This does nothing.");
+                                    combiningItem = null;
+                                }
+                                else
+                                {
+                                    clickedItem.Combining = true;
+                                    combiningItem = clickedItem;
+                                }
                             }
 
                             Remove(mouseMenu);
@@ -265,9 +298,18 @@ namespace LD30
                         }
                     }
 
-                    if (messageModal.SendButton.WorldRect.Contains(mousePos.X, mousePos.Y))
+                    // Pressed close on message modal
+                    if (messageModal.CloseButton.WorldRect.Contains(mousePos.X, mousePos.Y))
                     {
-
+                        Scroll clickedScroll = clickedItem as Scroll;
+                        for (int j = 0; j < 3; j++)
+                        {
+                            clickedScroll.Message.Text[j] = messageModal.MessageBox.Lines[j];
+                        }
+                        clickedScroll.Message.Regards = messageModal.RegardsBox.Lines[0];
+                        Remove(messageModal);
+                        messageModal = null;
+                        player.Input = true;
                     }
                 }
             }

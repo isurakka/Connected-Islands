@@ -16,7 +16,7 @@ namespace LD30
         public Textbox RegardsBox;
         public Textbox CurrentTextbox = null;
 
-        public Button SendButton;
+        public Button CloseButton;
 
         public MessageModal(Game game, Sprite bgSprite, Vector2f size)
             : base(game)
@@ -33,8 +33,8 @@ namespace LD30
             RegardsBox.LineSize = new Vector2f(260f, 30f);
             RegardsBox.Lines[0] = "Regards ";
 
-            SendButton = new Button(game);
-            SendButton.Text = "Send";
+            CloseButton = new Button(game);
+            CloseButton.Text = "Close";
         }
 
         public override void Draw(RenderTarget target)
@@ -51,8 +51,8 @@ namespace LD30
             RegardsBox.Position = MessageBox.Position + new Vector2f(0f, 200f);
             RegardsBox.Draw(target);
 
-            SendButton.Position = RegardsBox.Position + new Vector2f(360f, 0f);
-            SendButton.Draw(target);
+            CloseButton.Position = RegardsBox.Position + new Vector2f(360f, 34f);
+            CloseButton.Draw(target);
 
             target.SetView(view);
         }

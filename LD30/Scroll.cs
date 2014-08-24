@@ -20,10 +20,12 @@ namespace LD30
             }
         }
 
-        public Scroll(Game game)
+        public Message Message;
+
+        public Scroll(Game game, Message message)
             : base(game, new Sprite(ResourceManager.GetResource<Sprite>("scrollSpr")))
         {
-
+            this.Message = message;
         }
     }
 }

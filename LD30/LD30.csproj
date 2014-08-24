@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Button.cs" />
     <Compile Include="Message.cs" />
+    <Compile Include="MessageLog.cs" />
     <Compile Include="MessageModal.cs" />
     <Compile Include="MouseMenu.cs" />
     <Compile Include="Scroll.cs" />

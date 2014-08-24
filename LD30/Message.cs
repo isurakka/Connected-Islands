@@ -8,8 +8,9 @@ namespace LD30
 {
     class Message
     {
-        public string Message = "";
-        public string Regards = "";
+        public int Id = -1;
+        public string[] Text = new string[3];
+        public string Regards = "Regards ";
         public DateTime Time;
         public long Views;
     }
