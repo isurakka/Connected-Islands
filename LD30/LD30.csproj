@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cave.cs" />
     <Compile Include="ScrollInBottle.cs" />
     <Compile Include="Button.cs" />
     <Compile Include="Message.cs" />
@@ -72,6 +73,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="assets\cave.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="assets\message.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

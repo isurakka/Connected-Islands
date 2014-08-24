@@ -16,6 +16,7 @@ namespace LD30
             : base(game, worldImage)
         {
             SpawnPosition = findFirstWorldPositionForColor(Color.Black);
+            PositionCache.Add("CaveEntrance", findFirstWorldPositionForColor(new Color(255, 0, 255)));
 
             foreach (var treePos in FindAllLocalPositionsForColor(new Color(127, 64, 0)))
             {
@@ -65,8 +66,22 @@ namespace LD30
                 return Utility.GetTilemapPositionForCoords(1, 0);
             else if (Utility.ColorEquals(color, Color.Yellow))
                 return Utility.GetTilemapPositionForCoords(2, 0);
+            else if (Utility.ColorEquals(color, new Color(200, 100, 0)))
+                return Utility.GetTilemapPositionForCoords(0, 1);
+            else if (Utility.ColorEquals(color, new Color(64, 32, 0)))
+                return Utility.GetTilemapPositionForCoords(1, 1);
+            else if (Utility.ColorEquals(color, new Color(255, 0, 255)))
+                return Utility.GetTilemapPositionForCoords(2, 1);
 
             throw new ArgumentException("No position found for such color.");
+        }
+
+        protected override bool getCollisionForColor(Color color)
+        {
+            if (Utility.ColorEquals(color, new Color(64, 32, 0)))
+                return true;
+
+            return false;
         }
     }
 }

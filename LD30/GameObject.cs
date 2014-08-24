@@ -27,7 +27,18 @@ namespace LD30
             }
         }
 
-        public bool Enabled = true;
+        private bool enabled = true;
+        public virtual bool Enabled
+        {
+            get
+            {
+                return enabled;
+            }
+            set
+            {
+                enabled = value;
+            }
+        }
 
         public GameObject(Game game)
         {

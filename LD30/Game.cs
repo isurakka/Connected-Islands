@@ -25,6 +25,8 @@ namespace LD30
 
         SortedDictionary<int, List<GameObject>> gameObjects = new SortedDictionary<int, List<GameObject>>();
         OverWorld overWorld;
+        Cave cave;
+        World currentWorld;
         Player player;
         Inventory inventory;
         MouseMenu mouseMenu;
@@ -58,9 +60,16 @@ namespace LD30
             ResourceManager.DeriveResource<Texture, Sprite>("messageTex", "messageSpr", s => new Sprite(s));
 
             ResourceManager.LoadResource<Image>("assets/overworld.png", "overworldImg");
+            ResourceManager.LoadResource<Image>("assets/cave.png", "caveImg");
 
             overWorld = new OverWorld(this, ResourceManager.GetResource<Image>("overworldImg"));
             Add(overWorld);
+
+            cave = new Cave(this, ResourceManager.GetResource<Image>("caveImg"));
+            cave.Enabled = false;
+            Add(cave);
+
+            currentWorld = overWorld;
 
             player = new Player(this, ResourceManager.GetResource<Sprite>("playerSpr"));
             Add(player, 1);
@@ -145,26 +154,26 @@ namespace LD30
                 (int)Math.Floor(player.WorldCenter.Y * (1f / Game.TileSize)));
 
             var upLocal = playerLocalPos + new Vector2i(0, -1);
-            var upRect = overWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(0, -1));
+            var upRect = currentWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(0, -1));
             var downLocal = playerLocalPos + new Vector2i(0, 1);
-            var downRect = overWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(0, 1));
+            var downRect = currentWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(0, 1));
 
             var leftLocal = playerLocalPos + new Vector2i(-1, 0);
-            var leftRect = overWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(-1, 0));
+            var leftRect = currentWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(-1, 0));
             var rightLocal = playerLocalPos + new Vector2i(1, 0);
-            var rightRect = overWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(1, 0));
+            var rightRect = currentWorld.GetWorldFloatRectForTile(playerLocalPos + new Vector2i(1, 0));
 
             var playerRect = new FloatRect(player.Position.X, player.Position.Y, Game.TileSize, Game.TileSize);
-            if (overWorld.Collisions[upLocal.X, upLocal.Y] && playerRect.Intersects(upRect))
+            if (currentWorld.Collisions[upLocal.X, upLocal.Y] && playerRect.Intersects(upRect))
                 player.Position += new Vector2f(0f, -(player.Position.Y - (upRect.Top + upRect.Height)));
-            if (overWorld.Collisions[downLocal.X, downLocal.Y] && playerRect.Intersects(downRect))
+            if (currentWorld.Collisions[downLocal.X, downLocal.Y] && playerRect.Intersects(downRect))
                 player.Position += new Vector2f(0f, -(player.Position.Y + Game.TileSize - downRect.Top));
-            if (overWorld.Collisions[leftLocal.X, leftLocal.Y] && playerRect.Intersects(leftRect))
+            if (currentWorld.Collisions[leftLocal.X, leftLocal.Y] && playerRect.Intersects(leftRect))
                 player.Position += new Vector2f(-(player.Position.X - (leftRect.Left + leftRect.Width)), 0f);
-            if (overWorld.Collisions[rightLocal.X, rightLocal.Y] && playerRect.Intersects(rightRect))
+            if (currentWorld.Collisions[rightLocal.X, rightLocal.Y] && playerRect.Intersects(rightRect))
                 player.Position += new Vector2f(-(player.Position.X + Game.TileSize - rightRect.Left), 0f);
-            
-            var color = overWorld.GetColorAtWorldPosition(player.WorldCenter);
+
+            var color = currentWorld.GetColorAtWorldPosition(player.WorldCenter);
             if (Utility.ColorEquals(color, Color.Blue))
             {
                 player.SpeedModifier = 0.5f;
@@ -176,8 +185,32 @@ namespace LD30
                 player.HalfVertical = false;
             }
 
+            processPortals();
             refreshBottles();
             processUI();
+        }
+
+        private void processPortals()
+        {
+            World otherWorld = null;
+            if (overWorld.Enabled)
+            {
+                otherWorld = cave;
+            }
+            else
+            {
+                otherWorld = overWorld;
+            }
+
+            var portalPos = currentWorld.PositionCache["CaveEntrance"];
+
+            if ((player.Position - portalPos).Length() < Game.TileSize / 4f)
+            {
+                currentWorld.Enabled = false;
+                otherWorld.Enabled = true;
+                currentWorld = otherWorld;
+                player.Position = otherWorld.PositionCache["CaveEntrance"] + new Vector2f(0f, Game.TileSize);
+            }
         }
 
 #if DEBUG
@@ -193,8 +226,8 @@ namespace LD30
                 var netBottles = gameObjects.Aggregate(new List<GameObject>(), (acc, pair) => { acc.AddRange(pair.Value); return acc; }).Where(obj => obj is ScrollInBottle && (obj as Item).Dropped && (obj as ScrollInBottle).Scroll.ReceiveOnOpen);
                 if (netBottles.Count() >= maxNetBottles)
                     break;
-                
-                foreach (var bottlePos in overWorld.FindAllWorldPositionsForColor(new Color(0, 127, 100)))
+
+                foreach (var bottlePos in currentWorld.FindAllWorldPositionsForColor(new Color(0, 127, 100)))
                 {
                     var topLeftView = MainWindow.MapPixelToCoords(new Vector2i());
                     var botRightView = MainWindow.MapPixelToCoords(new Vector2i((int)MainWindow.Size.X - 1, (int)MainWindow.Size.Y - 1));
@@ -390,7 +423,7 @@ namespace LD30
                             }
                             else if (mouseMenu.Options[mouseMenu.HoverIndex] == "Send bottle")
                             {
-                                var color = overWorld.GetColorAtWorldPosition(player.WorldCenter);
+                                var color = currentWorld.GetColorAtWorldPosition(player.WorldCenter);
                                 if (Utility.ColorEquals(color, Color.Blue))
                                 {
                                     var scrollInBottle = clickedItem as ScrollInBottle;

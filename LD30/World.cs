@@ -15,6 +15,24 @@ namespace LD30
         VertexArray tileVA;
         Image worldImage;
         RenderStates states = RenderStates.Default;
+        public Dictionary<string, Vector2f> PositionCache = new Dictionary<string, Vector2f>();
+
+        public override bool Enabled
+        {
+            get
+            {
+                return base.Enabled;
+            }
+            set
+            {
+                base.Enabled = value;
+
+                if (!value)
+                {
+                    tileVA.Clear();
+                }
+            }
+        }
 
         public World(Game game, Image worldImage)
             : base(game)
@@ -26,6 +44,15 @@ namespace LD30
 
             states.Transform.Scale(Game.TilemapScale, Game.TilemapScale);
             states.Texture = ResourceManager.GetResource<Texture>("tilemapTex");
+
+            for (int x = 0; x < worldImage.Size.X; x++)
+            {
+                for (int y = 0; y < worldImage.Size.Y; y++)
+                {
+                    if (getCollisionForColor(worldImage.GetPixel((uint)x, (uint)y)))
+                        Collisions[x, y] = true;
+                }
+            }
         }
 
         protected Vector2f findFirstWorldPositionForColor(Color findColor)
@@ -83,6 +110,9 @@ namespace LD30
 
         public override void Draw(RenderTarget target)
         {
+            if (!Enabled)
+                return;
+
             var topLeftView = target.MapPixelToCoords(new Vector2i());
             var botRightView = target.MapPixelToCoords(new Vector2i((int)game.MainWindow.Size.X - 1, (int)game.MainWindow.Size.Y - 1));
             var viewRect = new FloatRect(topLeftView.X, topLeftView.Y, botRightView.X - topLeftView.X, botRightView.Y - topLeftView.Y);
@@ -95,6 +125,9 @@ namespace LD30
             {
                 for (int y = topLeftLocal.Y; y < botRightLocal.Y; y++)
                 {
+                    if (x < 0 || y < 0 || x > worldImage.Size.X - 1 || y > worldImage.Size.Y - 1)
+                        continue;
+
                     var color = worldImage.GetPixel((uint)x, (uint)y);
                     var pos = getTilemapPositionForColor(color);
                     var topLeft = new Vertex(
@@ -121,5 +154,6 @@ namespace LD30
         }
 
         protected abstract Vector2f getTilemapPositionForColor(Color color);
+        protected abstract bool getCollisionForColor(Color color);
     }
 }
