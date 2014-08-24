@@ -46,6 +46,7 @@ namespace LD30
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "flowerSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 2, 4));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "bottleSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 2, 6));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "scrollSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 3, 6));
+            ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "scrollinbottleSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 4, 6));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "treeSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 5, 2, 3));
 
             ResourceManager.LoadResource<Font>("assets/HelvetiPixel.ttf", "font");
@@ -233,7 +234,7 @@ namespace LD30
                         {
                             Scroll clickedScroll = clickedItem as Scroll;
 
-                            if (clickedScroll != null && mouseMenu.Options[mouseMenu.HoverIndex] == "Write a message")
+                            if (clickedScroll != null && mouseMenu.Options[mouseMenu.HoverIndex] == "View")
                             {
                                 var messageImg = ResourceManager.GetResource<Image>("messageImg");
                                 messageModal = new MessageModal(this, ResourceManager.GetResource<Sprite>("messageSpr"), new Vector2f(messageImg.Size.X, messageImg.Size.Y) * Game.TilemapScale);
@@ -251,13 +252,45 @@ namespace LD30
 
                                 if (combiningItem != null)
                                 {
-                                    messageLog.AddMessage("This does nothing.");
+                                    if ((combiningItem is Bottle && clickedItem is Scroll) || (clickedItem is Bottle && combiningItem is Scroll))
+                                    {
+                                        Scroll scroll = (combiningItem as Scroll) ?? (clickedItem as Scroll);
+                                        Bottle bottle = (combiningItem as Bottle) ?? (clickedItem as Bottle);
+
+                                        var bottleIndex = inventory.Items.IndexOf(bottle);
+                                        ScrollInBottle scrollInBottle = new ScrollInBottle(this);
+                                        scrollInBottle.Scroll = scroll;
+                                        scrollInBottle.Bottle = bottle;
+                                        inventory.Items.Insert(bottleIndex, scrollInBottle);
+
+                                        inventory.Items.Remove(scroll);
+                                        inventory.Items.Remove(bottle);
+
+                                        messageLog.AddMessage("Put scroll in bottle.");
+                                    }
+                                    else
+                                    {
+                                        messageLog.AddMessage("This does nothing.");
+                                    }
+                                    
                                     combiningItem = null;
                                 }
                                 else
                                 {
                                     clickedItem.Combining = true;
                                     combiningItem = clickedItem;
+                                }
+                            }
+                            else if (mouseMenu.Options[mouseMenu.HoverIndex] == "Separate")
+                            {
+                                ScrollInBottle scrollInBottle = clickedItem as ScrollInBottle;
+                                if (scrollInBottle != null)
+                                {
+                                    var index = inventory.Items.IndexOf(scrollInBottle);
+                                    inventory.Items.Insert(index, scrollInBottle.Scroll);
+                                    inventory.Items.Insert(index, scrollInBottle.Bottle);
+                                    inventory.Items.Remove(scrollInBottle);
+                                    messageLog.AddMessage("Took the scroll out of the bottle.");
                                 }
                             }
 

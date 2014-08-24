@@ -7,25 +7,26 @@ using System.Threading.Tasks;
 
 namespace LD30
 {
-    class Scroll : Item
+    class ScrollInBottle : Item
     {
+        public Scroll Scroll;
+        public Bottle Bottle;
+
         public override List<string> RightClickOptions
         {
-            get 
+            get
             {
                 var baseOptions = base.RightClickOptions;
-                var myOptions = new List<string>() { "View" };
+                var myOptions = new List<string>() { "Separate" };
                 myOptions.AddRange(baseOptions);
                 return myOptions;
             }
         }
 
-        public Message Message;
-
-        public Scroll(Game game, Message message)
-            : base(game, new Sprite(ResourceManager.GetResource<Sprite>("scrollSpr")))
+        public ScrollInBottle(Game game)
+            : base(game, new Sprite(ResourceManager.GetResource<Sprite>("scrollinbottleSpr")))
         {
-            this.Message = message;
+
         }
     }
 }
