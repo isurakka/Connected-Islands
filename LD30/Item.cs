@@ -33,21 +33,37 @@ namespace LD30
         {
             get
             {
-                return new FloatRect(Position.X, Position.Y, Game.TileSize, Game.TileSize);
+                if (Dropped)
+                {
+                    return new FloatRect(Position.X, Position.Y, Game.TileSize * (2f / 3f), Game.TileSize * (2f / 3f));
+                }
+                else
+                {
+                    return new FloatRect(Position.X, Position.Y, Game.TileSize, Game.TileSize);
+                }
             }
         }
 
         public bool Combining = false;
+        public bool Dropped = false;
 
         public Item(Game game, Sprite spr)
             : base(game)
         {
             this.sprite = spr;
-            sprite.Scale = new Vector2f(Game.TilemapScale, Game.TilemapScale);
         }
 
         public override void Draw(RenderTarget target)
         {
+            if (Dropped)
+            {
+                sprite.Scale = new Vector2f(Game.TilemapScale, Game.TilemapScale) * (2f / 3f);
+            }
+            else
+            {
+                sprite.Scale = new Vector2f(Game.TilemapScale, Game.TilemapScale);
+            }
+
             target.Draw(sprite);
             
             if (Combining)

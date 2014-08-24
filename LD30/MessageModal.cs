@@ -14,9 +14,11 @@ namespace LD30
         Vector2f size;
         public Textbox MessageBox;
         public Textbox RegardsBox;
+        public Text TimeText;
         public Textbox CurrentTextbox = null;
 
         public Button CloseButton;
+        public bool CanEdit = true;
 
         public MessageModal(Game game, Sprite bgSprite, Vector2f size)
             : base(game)
@@ -33,8 +35,17 @@ namespace LD30
             RegardsBox.LineSize = new Vector2f(260f, 30f);
             RegardsBox.Lines[0] = "Regards ";
 
+            TimeText = new Text("", ResourceManager.GetResource<Font>("font"), 28u);
+            TimeText.Color = Color.Black;
+
             CloseButton = new Button(game);
             CloseButton.Text = "Close";
+        }
+
+        public override void Update(float dt)
+        {
+            MessageBox.Update(dt);
+            RegardsBox.Update(dt);
         }
 
         public override void Draw(RenderTarget target)
@@ -50,6 +61,9 @@ namespace LD30
 
             RegardsBox.Position = MessageBox.Position + new Vector2f(0f, 200f);
             RegardsBox.Draw(target);
+
+            TimeText.Position = RegardsBox.Position + new Vector2f(300f, -12f);
+            target.Draw(TimeText);
 
             CloseButton.Position = RegardsBox.Position + new Vector2f(360f, 34f);
             CloseButton.Draw(target);

@@ -11,13 +11,13 @@ namespace LD30
     {
         public Scroll Scroll;
         public Bottle Bottle;
-
+        
         public override List<string> RightClickOptions
         {
             get
             {
                 var baseOptions = base.RightClickOptions;
-                var myOptions = new List<string>() { "Separate" };
+                var myOptions = new List<string>() { "Send bottle", "Separate" };
                 myOptions.AddRange(baseOptions);
                 return myOptions;
             }

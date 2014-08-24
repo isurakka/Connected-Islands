@@ -20,6 +20,8 @@ namespace LD30
         public const int TilemapSize = 24;
         public const int TilemapScale = 3;
         public const int TileSize = TilemapSize * TilemapScale;
+        public const string NetSeparator = "bJqjhyNsvA3wffogBGL5qpxoQ3mNemK7";
+        public const string MessageRequest = "i5tbjtHCXa0fGCvZW98wrrWzAHPRRw88";
 
         SortedDictionary<int, List<GameObject>> gameObjects = new SortedDictionary<int, List<GameObject>>();
         OverWorld overWorld;
@@ -174,7 +176,51 @@ namespace LD30
                 player.HalfVertical = false;
             }
 
+            refreshBottles();
             processUI();
+        }
+
+#if DEBUG
+        const int maxNetBottles = 10;
+#else
+        const int maxNetBottles = 2;
+#endif
+
+        private void refreshBottles()
+        {
+            while (true)
+            {
+                var netBottles = gameObjects.Aggregate(new List<GameObject>(), (acc, pair) => { acc.AddRange(pair.Value); return acc; }).Where(obj => obj is ScrollInBottle && (obj as Item).Dropped && (obj as ScrollInBottle).Scroll.ReceiveOnOpen);
+                if (netBottles.Count() >= maxNetBottles)
+                    break;
+                
+                foreach (var bottlePos in overWorld.FindAllWorldPositionsForColor(new Color(0, 127, 100)))
+                {
+                    var topLeftView = MainWindow.MapPixelToCoords(new Vector2i());
+                    var botRightView = MainWindow.MapPixelToCoords(new Vector2i((int)MainWindow.Size.X - 1, (int)MainWindow.Size.Y - 1));
+                    var viewRect = new FloatRect(topLeftView.X, topLeftView.Y, botRightView.X - topLeftView.X, botRightView.Y - topLeftView.Y);
+
+                    if (viewRect.Contains(bottlePos.X, bottlePos.Y))
+                        continue;
+
+                    if (netBottles.Any(obj =>
+                    {
+                        var bottle = obj as ScrollInBottle;
+                        return (bottle.Position - bottlePos).Length() < 100;
+                    }))
+                    {
+                        continue;
+                    }
+
+                    var newBottle = new ScrollInBottle(this);
+                    newBottle.Bottle = new Bottle(this);
+                    newBottle.Scroll = new Scroll(this, null);
+                    newBottle.Scroll.ReceiveOnOpen = true;
+                    newBottle.Dropped = true;
+                    newBottle.Position = bottlePos;
+                    Add(newBottle);
+                }
+            }
         }
 
         bool lastMouseRightDown = false;
@@ -184,7 +230,8 @@ namespace LD30
 
         private void processUI()
         {
-            var mousePos = MainWindow.MapPixelToCoords(Mouse.GetPosition(MainWindow), MainWindow.DefaultView);
+            var mousePosLocal = MainWindow.MapPixelToCoords(Mouse.GetPosition(MainWindow), MainWindow.DefaultView);
+            var mousePosWorld = MainWindow.MapPixelToCoords(Mouse.GetPosition(MainWindow));
             //var mousePosF = new Vector2f(mousePos.X, mousePos.Y);
             bool mouseRightDown = Mouse.IsButtonPressed(Mouse.Button.Right);
             bool mouseLeftDown = Mouse.IsButtonPressed(Mouse.Button.Left);
@@ -195,7 +242,7 @@ namespace LD30
                 bool openedMouseMenu = false;
                 foreach (var item in inventory.Items)
                 {
-                    if (item.WorldRect.Contains(mousePos.X, mousePos.Y))
+                    if (item.WorldRect.Contains(mousePosLocal.X, mousePosLocal.Y))
                     {
                         if ((mouseMenu != null && mouseMenu.HoverIndex != -1))
                             continue;
@@ -204,6 +251,28 @@ namespace LD30
                         clickedItem = item;
                         break;
                     }
+                }
+
+                if (!openedMouseMenu)
+                {
+                    foreach (var item in gameObjects.Aggregate(new List<GameObject>(), (acc, pair) => { acc.AddRange(pair.Value); return acc; }).Where(obj => obj is Item && (obj as Item).Dropped))
+	                {
+                        var castedItem = item as Item;
+                        if (castedItem.WorldRect.Contains(mousePosWorld.X, mousePosWorld.Y))
+                        {
+                            if (mouseMenu != null)
+                            {
+                                Remove(mouseMenu);
+                            }
+
+                            clickedItem = castedItem;
+
+                            mouseMenu = new MouseMenu(game);
+                            mouseMenu.Options = new List<string>() { "Pick up" };
+                            mouseMenu.Position = mousePosLocal;
+                            Add(mouseMenu, 1000);
+                        }
+	                }
                 }
 
                 if (openedMouseMenu && clickedItem != null)
@@ -215,8 +284,18 @@ namespace LD30
 
                     mouseMenu = new MouseMenu(game);
                     mouseMenu.Options = clickedItem.RightClickOptions;
-                    mouseMenu.Position = mousePos;
+                    mouseMenu.Position = mousePosLocal;
                     Add(mouseMenu, 1000);
+                }
+            }
+
+            // Close mouse menu if too far away
+            if (mouseMenu != null && clickedItem != null && clickedItem.Dropped)
+            {
+                if ((clickedItem.Position - player.Position).Length() > 100)
+                {
+                    Remove(mouseMenu);
+                    mouseMenu = null;
                 }
             }
 
@@ -225,7 +304,7 @@ namespace LD30
                 mouseMenu.HoverIndex = -1;
                 for (int i = 0; i < mouseMenu.Options.Count; i++)
                 {
-                    if (mouseMenu.GetRectForOption(i).Contains(mousePos.X, mousePos.Y))
+                    if (mouseMenu.GetRectForOption(i).Contains(mousePosLocal.X, mousePosLocal.Y))
                     {
                         mouseMenu.HoverIndex = i;
 
@@ -238,6 +317,16 @@ namespace LD30
                             {
                                 var messageImg = ResourceManager.GetResource<Image>("messageImg");
                                 messageModal = new MessageModal(this, ResourceManager.GetResource<Sprite>("messageSpr"), new Vector2f(messageImg.Size.X, messageImg.Size.Y) * Game.TilemapScale);
+                                if (clickedScroll.ReceiveOnOpen)
+                                {
+                                    clickedScroll.Message = Message.ReceiveRandom();
+                                    clickedScroll.ReceiveOnOpen = false;
+                                    messageModal.TimeText.DisplayedString = clickedScroll.Message.Time.ToString();
+                                }
+                                else
+                                {
+                                    messageModal.TimeText.DisplayedString = DateTime.Now.ToString();
+                                }
                                 for (int j = 0; j < 3; j++)
                                 {
                                     messageModal.MessageBox.Lines[j] = clickedScroll.Message.Text[j];
@@ -246,10 +335,16 @@ namespace LD30
                                 Add(messageModal, 1001);
                                 player.Input = false;
                             }
+                            else if (mouseMenu.Options[mouseMenu.HoverIndex] == "Drop")
+                            {
+                                clickedItem.Dropped = true;
+                                inventory.Items.ForEach(item => item.Combining = false);
+                                inventory.Items.Remove(clickedItem);
+                                clickedItem.Position = player.Position;
+                                Add(clickedItem);
+                            }
                             else if (mouseMenu.Options[mouseMenu.HoverIndex] == "Combine")
                             {
-                                inventory.Items.ForEach(item => item.Combining = false);
-
                                 if (combiningItem != null)
                                 {
                                     if ((combiningItem is Bottle && clickedItem is Scroll) || (clickedItem is Bottle && combiningItem is Scroll))
@@ -272,7 +367,7 @@ namespace LD30
                                     {
                                         messageLog.AddMessage("This does nothing.");
                                     }
-                                    
+
                                     combiningItem = null;
                                 }
                                 else
@@ -293,6 +388,32 @@ namespace LD30
                                     messageLog.AddMessage("Took the scroll out of the bottle.");
                                 }
                             }
+                            else if (mouseMenu.Options[mouseMenu.HoverIndex] == "Send bottle")
+                            {
+                                var color = overWorld.GetColorAtWorldPosition(player.WorldCenter);
+                                if (Utility.ColorEquals(color, Color.Blue))
+                                {
+                                    var scrollInBottle = clickedItem as ScrollInBottle;
+                                    scrollInBottle.Scroll.Message.NetSend();
+                                    messageLog.AddMessage("Bottle sent.");
+                                    inventory.Items.Remove(scrollInBottle);
+                                }
+                                else
+                                {
+                                    messageLog.AddMessage("You need to be in sea.");
+                                }
+                            }
+                            else if (mouseMenu.Options[mouseMenu.HoverIndex] == "Pick up")
+                            {
+                                Remove(clickedItem);
+                                clickedItem.Dropped = false;
+                                inventory.Items.Add(clickedItem);
+                            }
+
+                            if (mouseMenu.Options[mouseMenu.HoverIndex] != "View")
+                            {
+                                clickedItem = null;
+                            }
 
                             Remove(mouseMenu);
                             mouseMenu = null;
@@ -311,8 +432,9 @@ namespace LD30
                     {
                         var rect = messageModal.MessageBox.GetRectForLine(i);
 
-                        if (rect.Contains(mousePos.X, mousePos.Y))
+                        if (rect.Contains(mousePosLocal.X, mousePosLocal.Y))
                         {
+                            messageModal.RegardsBox.WriteIndex = -1;
                             messageModal.MessageBox.WriteIndex = i;
                             messageModal.CurrentTextbox = messageModal.MessageBox;
                             break;
@@ -323,8 +445,9 @@ namespace LD30
                     {
                         var rect = messageModal.RegardsBox.GetRectForLine(i);
 
-                        if (rect.Contains(mousePos.X, mousePos.Y))
+                        if (rect.Contains(mousePosLocal.X, mousePosLocal.Y))
                         {
+                            messageModal.MessageBox.WriteIndex = -1;
                             messageModal.RegardsBox.WriteIndex = i;
                             messageModal.CurrentTextbox = messageModal.RegardsBox;
                             break;
@@ -332,7 +455,7 @@ namespace LD30
                     }
 
                     // Pressed close on message modal
-                    if (messageModal.CloseButton.WorldRect.Contains(mousePos.X, mousePos.Y))
+                    if (messageModal.CloseButton.WorldRect.Contains(mousePosLocal.X, mousePosLocal.Y))
                     {
                         Scroll clickedScroll = clickedItem as Scroll;
                         for (int j = 0; j < 3; j++)
@@ -343,6 +466,7 @@ namespace LD30
                         Remove(messageModal);
                         messageModal = null;
                         player.Input = true;
+                        clickedItem = null;
                     }
                 }
             }
@@ -367,6 +491,8 @@ namespace LD30
                 {
                     messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex] += e.Unicode;
                 }
+
+                messageModal.TimeText.DisplayedString = DateTime.Now.ToString();
 
                 var text = messageModal.CurrentTextbox.GetTextForString(messageModal.CurrentTextbox.Lines[messageModal.CurrentTextbox.WriteIndex]);
                 if (text.GetLocalBounds().Width > messageModal.CurrentTextbox.LineSize.X - messageModal.CurrentTextbox.Margin * 2f)

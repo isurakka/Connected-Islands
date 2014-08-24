@@ -21,6 +21,7 @@ namespace LD30
         }
 
         public Message Message;
+        public bool ReceiveOnOpen = false;
 
         public Scroll(Game game, Message message)
             : base(game, new Sprite(ResourceManager.GetResource<Sprite>("scrollSpr")))

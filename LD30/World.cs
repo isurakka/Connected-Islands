@@ -43,7 +43,7 @@ namespace LD30
             throw new ArgumentException("Couldn't find the specified color");
         }
 
-        protected List<Vector2i> findAllLocalPositionsForColor(Color findColor)
+        public List<Vector2i> FindAllLocalPositionsForColor(Color findColor)
         {
             var finds = new List<Vector2i>();
             for (int x = 0; x < worldImage.Size.X; x++)
@@ -58,9 +58,9 @@ namespace LD30
             return finds;
         }
 
-        protected List<Vector2f> findAllWorldPositionsForColor(Color findColor)
+        public List<Vector2f> FindAllWorldPositionsForColor(Color findColor)
         {
-            var findsLocal = findAllLocalPositionsForColor(findColor);
+            var findsLocal = FindAllLocalPositionsForColor(findColor);
             var finds = new List<Vector2f>();
             for (int i = 0; i < findsLocal.Count; i++)
             {

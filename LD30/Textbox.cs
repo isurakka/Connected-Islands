@@ -2,6 +2,7 @@
 using SFML.Window;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,6 +48,20 @@ namespace LD30
             return text;
         }
 
+        float caretAcc = 0f;
+        float caretInterval = 0.2f;
+        bool caret = true;
+
+        public override void Update(float dt)
+        {
+            caretAcc += dt;
+            while (caretAcc >= caretInterval)
+            {
+                caretAcc -= caretInterval;
+                caret = !caret;
+            }
+        }
+
         public override void Draw(SFML.Graphics.RenderTarget target)
         {
             var view = new View(target.GetView());
@@ -65,6 +80,15 @@ namespace LD30
                 var text = GetTextForString(Lines[i]);
                 text.Position = rect.Position + new Vector2f(Margin, -LineSize.Y / 3f);
                 target.Draw(text);
+
+                if (caret && WriteIndex == i)
+                {
+                    var caretPos = new Vector2f(text.GetGlobalBounds().Left + text.GetGlobalBounds().Width, rect.Position.Y + 4f);
+                    var caretRect = new RectangleShape(new Vector2f(2f, LineSize.Y - 8f));
+                    caretRect.FillColor = Color.Black;
+                    caretRect.Position = caretPos;
+                    target.Draw(caretRect);
+                }
 
                 nextY += LineSize.Y + Margin;
             }

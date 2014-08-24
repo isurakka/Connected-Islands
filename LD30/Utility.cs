@@ -32,6 +32,11 @@ namespace LD30
             return new Vector2f(len != 0f ? v.X / len : 0f, len != 0f ? v.Y / len : 0f);
         }
 
+        public static float Length(this Vector2f v)
+        {
+            return (float)Math.Sqrt(v.X * v.X + v.Y * v.Y);
+        }
+
         public static Vector2f GetTilemapPositionForCoords(int x, int y)
         {
             return new Vector2f(x * Game.TilemapSize, y * Game.TilemapSize);
