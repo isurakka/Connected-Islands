@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LD30
 {
@@ -29,6 +29,14 @@ namespace LD30
             get
             {
                 return Position.Y + Game.TileSize * 3;
+            }
+        }
+
+        public override FloatRect? VisibleRect
+        {
+            get
+            {
+                return new FloatRect(Position.X, Position.Y, Game.TileSize * 2, Game.TileSize * 3);
             }
         }
 

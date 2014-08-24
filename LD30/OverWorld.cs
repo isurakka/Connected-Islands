@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LD30
 {
@@ -15,8 +15,8 @@ namespace LD30
         public OverWorld(Game game, Image worldImage)
             : base(game, worldImage)
         {
-            SpawnPosition = findFirstWorldPositionForColor(Color.Black);
-            PositionCache.Add("CaveEntrance", findFirstWorldPositionForColor(new Color(255, 0, 255)));
+            SpawnPosition = FindFirstWorldPositionForColor(Color.Black);
+            PositionCache.Add("CaveEntrance", FindFirstWorldPositionForColor(new Color(255, 0, 255)));
 
             foreach (var treePos in FindAllLocalPositionsForColor(new Color(127, 64, 0)))
             {
@@ -24,6 +24,7 @@ namespace LD30
                 spr.Scale = new Vector2f(Game.TilemapScale, Game.TilemapScale);
                 var tree = new Tree(game, spr);
                 tree.Position = new Vector2f(treePos.X * Game.TileSize, treePos.Y * Game.TileSize);
+                tree.MyWorld = this;
                
                 game.Add(tree, 1);
                 Collisions[treePos.X, treePos.Y] = true;
@@ -36,6 +37,7 @@ namespace LD30
                 spr.Scale = new Vector2f(Game.TilemapScale, Game.TilemapScale);
                 var rock = new Rock(game, spr);
                 rock.Position = new Vector2f(rockPos.X * Game.TileSize, rockPos.Y * Game.TileSize);
+                rock.MyWorld = this;
 
                 game.Add(rock, 1);
                 Collisions[rockPos.X, rockPos.Y] = true;
@@ -47,6 +49,7 @@ namespace LD30
                 spr.Scale = new Vector2f(Game.TilemapScale, Game.TilemapScale);
                 var flower = new Flower(game, spr);
                 flower.Position = new Vector2f(flowerPos.X * Game.TileSize, flowerPos.Y * Game.TileSize);
+                flower.MyWorld = this;
 
                 game.Add(flower, 1);
             }
@@ -58,7 +61,12 @@ namespace LD30
                 Utility.ColorEquals(color, Color.Black) || 
                 Utility.ColorEquals(color, new Color(127, 64, 0)) || 
                 Utility.ColorEquals(color, new Color(64, 64, 64)) || 
-                Utility.ColorEquals(color, new Color(64, 127, 0)))
+                Utility.ColorEquals(color, new Color(64, 127, 0)) ||
+                Utility.ColorEquals(color, new Color(127, 0, 255)) ||
+                Utility.ColorEquals(color, new Color(128, 0, 255)) ||
+                Utility.ColorEquals(color, new Color(129, 0, 255)) ||
+                Utility.ColorEquals(color, new Color(130, 0, 255)) ||
+                Utility.ColorEquals(color, new Color(131, 0, 255)))
                 return Utility.GetTilemapPositionForCoords(0, 0);
             else if (
                 Utility.ColorEquals(color, Color.Blue) ||

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LD30
 {
@@ -55,7 +55,7 @@ namespace LD30
             }
         }
 
-        protected Vector2f findFirstWorldPositionForColor(Color findColor)
+        public Vector2f FindFirstWorldPositionForColor(Color findColor)
         {
             for (int x = 0; x < worldImage.Size.X; x++)
             {

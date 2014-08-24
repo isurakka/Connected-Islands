@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LD30
 {
@@ -22,6 +22,7 @@ namespace LD30
         public const int TileSize = TilemapSize * TilemapScale;
         public const string NetSeparator = "bJqjhyNsvA3wffogBGL5qpxoQ3mNemK7";
         public const string MessageRequest = "i5tbjtHCXa0fGCvZW98wrrWzAHPRRw88";
+        public const string GuestbookRequest = "CQrxp2zpbWUNRDYaLeoLOpQait2rHk2N";
 
         SortedDictionary<int, List<GameObject>> gameObjects = new SortedDictionary<int, List<GameObject>>();
         OverWorld overWorld;
@@ -33,11 +34,33 @@ namespace LD30
         MessageModal messageModal;
         MessageLog messageLog;
 
+        Guestbook MainIslandGuestbook;
+        Guestbook EastIslandGuestbook;
+        Guestbook WestIslandGuestbook;
+        Guestbook SouthIslandGuestbook;
+        Guestbook NorthIslandGuestbook;
+        Guestbook CaveEntranceGuestbook;
+        GuestbookModal guestbookModal;
+
         public Game()
             : base(null)
         {
-            MainWindow = new RenderWindow(new VideoMode(1600, 900), "LD30", Styles.Close, new ContextSettings() { AntialiasingLevel = 8 });
-            MainWindow.SetFramerateLimit(180u);
+            MainWindow = new RenderWindow(new VideoMode(1600, 900), "LD30", Styles.Default, new ContextSettings() { AntialiasingLevel = 8 });
+            //MainWindow.SetFramerateLimit(180u);
+            MainWindow.Closed += (s, a) =>
+            {
+                MainWindow.Close();
+            };
+            MainWindow.Resized += (s, a) =>
+            {
+                var view = MainWindow.GetView();
+                //view.Size = new Vector2f(MainWindow.Size.X, MainWindow.Size.Y);
+                view.Reset(new FloatRect(0f, 0f, MainWindow.Size.X, MainWindow.Size.Y));
+                //MainWindow.DefaultView.Size = view.Size;
+                MainWindow.DefaultView.Reset(new FloatRect(0f, 0f, MainWindow.Size.X, MainWindow.Size.Y));
+                //MainWindow.DefaultView
+                MainWindow.SetView(view);
+            };
             MainWindow.TextEntered += MainWindow_TextEntered;
         }
 
@@ -50,6 +73,7 @@ namespace LD30
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "flowerSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 2, 4));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "bottleSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 2, 6));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "scrollSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 3, 6));
+            ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "guestbookSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 3, 4));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "scrollinbottleSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 4, 6));
             ResourceManager.DeriveResource<Texture, Sprite>("tilemapTex", "treeSpr", s => Utility.CreateSubSprite(s, TilemapSize, TilemapSize, 0, 5, 2, 3));
 
@@ -65,9 +89,63 @@ namespace LD30
             overWorld = new OverWorld(this, ResourceManager.GetResource<Image>("overworldImg"));
             Add(overWorld);
 
+            var mainIslandGuestbookWorldPos = overWorld.FindFirstWorldPositionForColor(new Color(127, 0, 255));
+            var mainIslandGuestbookLocalPos = overWorld.FindAllLocalPositionsForColor(new Color(127, 0, 255))[0];
+            overWorld.Collisions[mainIslandGuestbookLocalPos.X, mainIslandGuestbookLocalPos.Y] = true;
+            MainIslandGuestbook = new Guestbook(this, new Sprite(ResourceManager.GetResource<Sprite>("guestbookSpr")));
+            MainIslandGuestbook.Position = mainIslandGuestbookWorldPos;
+            MainIslandGuestbook.MyWorld = overWorld;
+            MainIslandGuestbook.Name = "Center island guestbook";
+            Add(MainIslandGuestbook);
+
+            var eastIslandGuestbookWorldPos = overWorld.FindFirstWorldPositionForColor(new Color(128, 0, 255));
+            var eastIslandGuestbookLocalPos = overWorld.FindAllLocalPositionsForColor(new Color(128, 0, 255))[0];
+            overWorld.Collisions[eastIslandGuestbookLocalPos.X, eastIslandGuestbookLocalPos.Y] = true;
+            EastIslandGuestbook = new Guestbook(this, new Sprite(ResourceManager.GetResource<Sprite>("guestbookSpr")));
+            EastIslandGuestbook.Position = eastIslandGuestbookWorldPos;
+            EastIslandGuestbook.MyWorld = overWorld;
+            EastIslandGuestbook.Name = "East island guestbook";
+            Add(EastIslandGuestbook);
+
+            var westIslandGuestbookWorldPos = overWorld.FindFirstWorldPositionForColor(new Color(129, 0, 255));
+            var westIslandGuestbookLocalPos = overWorld.FindAllLocalPositionsForColor(new Color(129, 0, 255))[0];
+            overWorld.Collisions[westIslandGuestbookLocalPos.X, westIslandGuestbookLocalPos.Y] = true;
+            WestIslandGuestbook = new Guestbook(this, new Sprite(ResourceManager.GetResource<Sprite>("guestbookSpr")));
+            WestIslandGuestbook.Position = westIslandGuestbookWorldPos;
+            WestIslandGuestbook.MyWorld = overWorld;
+            WestIslandGuestbook.Name = "West island guestbook";
+            Add(WestIslandGuestbook);
+
+            var southIslandGuestbookWorldPos = overWorld.FindFirstWorldPositionForColor(new Color(130, 0, 255));
+            var southIslandGuestbookLocalPos = overWorld.FindAllLocalPositionsForColor(new Color(130, 0, 255))[0];
+            overWorld.Collisions[southIslandGuestbookLocalPos.X, southIslandGuestbookLocalPos.Y] = true;
+            SouthIslandGuestbook = new Guestbook(this, new Sprite(ResourceManager.GetResource<Sprite>("guestbookSpr")));
+            SouthIslandGuestbook.Position = southIslandGuestbookWorldPos;
+            SouthIslandGuestbook.MyWorld = overWorld;
+            SouthIslandGuestbook.Name = "South island guestbook";
+            Add(SouthIslandGuestbook);
+
+            var northIslandGuestbookWorldPos = overWorld.FindFirstWorldPositionForColor(new Color(131, 0, 255));
+            var northIslandGuestbookLocalPos = overWorld.FindAllLocalPositionsForColor(new Color(131, 0, 255))[0];
+            overWorld.Collisions[northIslandGuestbookLocalPos.X, northIslandGuestbookLocalPos.Y] = true;
+            NorthIslandGuestbook = new Guestbook(this, new Sprite(ResourceManager.GetResource<Sprite>("guestbookSpr")));
+            NorthIslandGuestbook.Position = northIslandGuestbookWorldPos;
+            NorthIslandGuestbook.MyWorld = overWorld;
+            NorthIslandGuestbook.Name = "North island guestbook";
+            Add(NorthIslandGuestbook);
+
             cave = new Cave(this, ResourceManager.GetResource<Image>("caveImg"));
             cave.Enabled = false;
             Add(cave);
+
+            var caveEntranceGuestbookWorldPos = cave.FindFirstWorldPositionForColor(new Color(132, 0, 255));
+            var caveEntranceGuestbookLocalPos = cave.FindAllLocalPositionsForColor(new Color(132, 0, 255))[0];
+            cave.Collisions[caveEntranceGuestbookLocalPos.X, caveEntranceGuestbookLocalPos.Y] = true;
+            CaveEntranceGuestbook = new Guestbook(this, new Sprite(ResourceManager.GetResource<Sprite>("guestbookSpr")));
+            CaveEntranceGuestbook.Position = caveEntranceGuestbookWorldPos;
+            CaveEntranceGuestbook.MyWorld = cave;
+            CaveEntranceGuestbook.Name = "Cave entrance guestbook";
+            Add(CaveEntranceGuestbook);
 
             currentWorld = overWorld;
 
@@ -142,6 +220,9 @@ namespace LD30
             {
                 foreach (var obj in pair.Value)
                 {
+                    if (obj.MyWorld != null && obj.MyWorld != currentWorld)
+                        continue;
+
                     obj.Update(dt);
                 }
             }
@@ -260,6 +341,8 @@ namespace LD30
         bool lastMouseLeftDown = false;
         Item clickedItem = null;
         Item combiningItem = null;
+        Guestbook openingGuestbook = null;
+        bool pressedButtonThisFrame = false;
 
         private void processUI()
         {
@@ -299,6 +382,7 @@ namespace LD30
                             }
 
                             clickedItem = castedItem;
+                            openedMouseMenu = true;
 
                             mouseMenu = new MouseMenu(game);
                             mouseMenu.Options = new List<string>() { "Pick up" };
@@ -308,7 +392,30 @@ namespace LD30
 	                }
                 }
 
-                if (openedMouseMenu && clickedItem != null)
+                if (!openedMouseMenu)
+                {
+                    foreach (var item in gameObjects.Aggregate(new List<GameObject>(), (acc, pair) => { acc.AddRange(pair.Value); return acc; }).Where(obj => obj is Guestbook))
+                    {
+                        var guestbook = item as Guestbook;
+                        if (guestbook.WorldRect.Contains(mousePosWorld.X, mousePosWorld.Y))
+                        {
+                            if (mouseMenu != null)
+                            {
+                                Remove(mouseMenu);
+                            }
+
+                            openedMouseMenu = true;
+                            openingGuestbook = guestbook;
+
+                            mouseMenu = new MouseMenu(game);
+                            mouseMenu.Options = new List<string>() { "Open guestbook" };
+                            mouseMenu.Position = mousePosLocal;
+                            Add(mouseMenu, 1000);
+                        }
+                    }
+                }
+
+                if (openedMouseMenu && clickedItem != null && mouseMenu == null)
                 {
                     if (mouseMenu != null)
                     {
@@ -366,6 +473,24 @@ namespace LD30
                                 }
                                 messageModal.RegardsBox.Lines[0] = clickedScroll.Message.Regards;
                                 Add(messageModal, 1001);
+                                player.Input = false;
+                            }
+                            else if (mouseMenu.Options[mouseMenu.HoverIndex] == "Open guestbook")
+                            {
+                                var messageImg = ResourceManager.GetResource<Image>("messageImg");
+                                guestbookModal = new GuestbookModal(this, ResourceManager.GetResource<Sprite>("messageSpr"), new Vector2f(messageImg.Size.X, messageImg.Size.Y) * Game.TilemapScale);
+                                if (openingGuestbook.LoadOnOpen)
+                                {
+                                    openingGuestbook.NetReceiveNames();
+                                    openingGuestbook.LoadOnOpen = false;
+                                }
+                                guestbookModal.Guestbook = openingGuestbook;
+                                if (Guestbook.CantSign.Contains(openingGuestbook.Name))
+                                {
+                                    guestbookModal.SignBox = null;
+                                    guestbookModal.SignButton = null;
+                                }
+                                Add(guestbookModal, 1001);
                                 player.Input = false;
                             }
                             else if (mouseMenu.Options[mouseMenu.HoverIndex] == "Drop")
@@ -455,6 +580,13 @@ namespace LD30
                         break;
                     }
                 }
+
+                // Pressed mouse outside an option
+                if (mouseMenu != null && mouseLeftDown && !lastMouseLeftDown)
+                {
+                    Remove(mouseMenu);
+                    mouseMenu = null;
+                }
             }
 
             if (messageModal != null)
@@ -504,14 +636,76 @@ namespace LD30
                 }
             }
 
+            if (!mouseLeftDown && lastMouseLeftDown)
+                pressedButtonThisFrame = false;
+
+            if (guestbookModal != null)
+            {
+                if (mouseLeftDown && !lastMouseLeftDown)
+                {
+                    if (guestbookModal.SignBox != null)
+                    {
+                        for (int i = 0; i < guestbookModal.SignBox.LineCount; i++)
+                        {
+                            var rect = guestbookModal.SignBox.GetRectForLine(i);
+
+                            if (rect.Contains(mousePosLocal.X, mousePosLocal.Y))
+                            {
+                                guestbookModal.SignBox.WriteIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Pressed up on guestbook modal
+                    if (guestbookModal.UpButton != null && !pressedButtonThisFrame && guestbookModal.UpButton.WorldRect.Contains(mousePosLocal.X, mousePosLocal.Y))
+                    {
+                        if (guestbookModal.NameIndex > 0)
+                        {
+                            guestbookModal.NameIndex--;
+                            pressedButtonThisFrame = true;
+                        }
+                    }
+
+                    // Pressed up on guestbook modal
+                    if (guestbookModal.DownButton != null && !pressedButtonThisFrame && guestbookModal.DownButton.WorldRect.Contains(mousePosLocal.X, mousePosLocal.Y))
+                    {
+                        if (guestbookModal.NameIndex + 1 + guestbookModal.NamesAtOnce <= guestbookModal.Guestbook.Rows.Count)
+                        {
+                            guestbookModal.NameIndex++;
+                            pressedButtonThisFrame = true;
+                        }
+                    }
+
+                    // Pressed sign on guestbook modal
+                    if (guestbookModal.SignButton != null && guestbookModal.SignButton.WorldRect.Contains(mousePosLocal.X, mousePosLocal.Y))
+                    {
+                        guestbookModal.Guestbook.NetAddName(new GuestbookRow() { Name = guestbookModal.SignBox.Lines[0], Time = DateTime.Now });
+                        Guestbook.CantSign.Add(guestbookModal.Guestbook.Name);
+                        guestbookModal.SignButton = null;
+                        guestbookModal.SignBox = null;
+                        guestbookModal.NameIndex = 0;
+                    }
+
+                    // Pressed close on guestbook modal
+                    if (guestbookModal.CloseButton.WorldRect.Contains(mousePosLocal.X, mousePosLocal.Y))
+                    {
+                        Remove(guestbookModal);
+                        guestbookModal = null;
+                        player.Input = true;
+                    }
+                }
+            }
+
             lastMouseRightDown = mouseRightDown;
+            lastMouseLeftDown = mouseLeftDown;
         }
 
         void MainWindow_TextEntered(object sender, TextEventArgs e)
         {
             if (messageModal != null && messageModal.CurrentTextbox != null && messageModal.CurrentTextbox.WriteIndex != -1)
             {
-                const string allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890.,-_:;!\"#¤%&/()=?+@£$€{[]}\'`´^* \b";
+                const string allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890.,-_:;!\"#¤%&/()=?+@£$€{[]}'`´^* \b";
 
                 if (!allowedChars.Contains(e.Unicode))
                     return;
@@ -535,6 +729,31 @@ namespace LD30
                         messageModal.CurrentTextbox.WriteIndex++;
                 }
             }
+
+            if (guestbookModal != null && guestbookModal.SignBox != null && guestbookModal.SignBox.WriteIndex != -1)
+            {
+                const string allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890.,-_:;!\"#¤%&/()=?+@£$€{[]}'`´^* \b";
+
+                if (!allowedChars.Contains(e.Unicode))
+                    return;
+
+                if (e.Unicode == "\b" && guestbookModal.SignBox.Lines[guestbookModal.SignBox.WriteIndex].Length > 0)
+                {
+                    guestbookModal.SignBox.Lines[guestbookModal.SignBox.WriteIndex] = guestbookModal.SignBox.Lines[guestbookModal.SignBox.WriteIndex].Remove(guestbookModal.SignBox.Lines[guestbookModal.SignBox.WriteIndex].Length - 1, 1);
+                }
+                else
+                {
+                    guestbookModal.SignBox.Lines[guestbookModal.SignBox.WriteIndex] += e.Unicode;
+                }
+
+                var text = guestbookModal.SignBox.GetTextForString(guestbookModal.SignBox.Lines[guestbookModal.SignBox.WriteIndex]);
+                if (text.GetLocalBounds().Width > guestbookModal.SignBox.LineSize.X - guestbookModal.SignBox.Margin * 2f)
+                {
+                    guestbookModal.SignBox.Lines[guestbookModal.SignBox.WriteIndex] = guestbookModal.SignBox.Lines[guestbookModal.SignBox.WriteIndex].Remove(guestbookModal.SignBox.Lines[guestbookModal.SignBox.WriteIndex].Length - 1, 1);
+                    if (guestbookModal.SignBox.WriteIndex != guestbookModal.SignBox.Lines.Length - 1)
+                        guestbookModal.SignBox.WriteIndex++;
+                }
+            }
         }
 
         public override void Draw(RenderTarget target)
@@ -545,10 +764,12 @@ namespace LD30
 
             foreach (var pair in gameObjects)
             {
-                pair.Value.Sort(new Comparison<GameObject>((obj1, obj2) => (int)(obj1.Depth - obj2.Depth)));
-                foreach (var obj in pair.Value)
+                var visible = pair.Value.Where(obj => obj.VisibleRect == null || viewRect.Intersects(obj.VisibleRect.Value)).ToList();
+
+                visible.Sort(new Comparison<GameObject>((obj1, obj2) => (int)(obj1.Depth - obj2.Depth)));
+                foreach (var obj in visible)
                 {
-                    if (obj.VisibleRect != null && !viewRect.Intersects(obj.VisibleRect.Value))
+                    if (obj.MyWorld != null && obj.MyWorld != currentWorld)
                         continue;
 
                     obj.Draw(target);

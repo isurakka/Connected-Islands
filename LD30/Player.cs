@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LD30
 {
@@ -107,7 +107,7 @@ namespace LD30
             Position = new Vector2f((float)Math.Round(Position.X), (float)Math.Round(Position.Y));
 
             var view = game.MainWindow.GetView();
-            view.Center = Position;
+            view.Center = Position + new Vector2f(Game.TileSize, Game.TileSize) * 0.5f;
             game.MainWindow.SetView(view);
 
             target.Draw(sprite);

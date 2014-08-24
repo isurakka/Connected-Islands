@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LD30
 {
@@ -26,6 +26,8 @@ namespace LD30
                 return null;
             }
         }
+
+        public World MyWorld = null;
 
         private bool enabled = true;
         public virtual bool Enabled
