@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Cave.cs" />
     <Compile Include="Guestbook.cs" />
+    <Compile Include="StartModal.cs" />
     <Compile Include="GuestbookModal.cs" />
     <Compile Include="ScrollInBottle.cs" />
     <Compile Include="Button.cs" />

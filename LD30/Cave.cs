@@ -19,7 +19,9 @@ namespace LD30
         protected override SFML.Window.Vector2f getTilemapPositionForColor(Color color)
         {
             if (Utility.ColorEquals(color, new Color(200, 100, 0)) ||
-                Utility.ColorEquals(color, new Color(132, 0, 255)))
+                Utility.ColorEquals(color, new Color(132, 0, 255)) ||
+                Utility.ColorEquals(color, new Color(133, 0, 255)) ||
+                Utility.ColorEquals(color, new Color(134, 0, 255)))
                 return Utility.GetTilemapPositionForCoords(0, 1);
             else if (Utility.ColorEquals(color, new Color(64, 32, 0)))
                 return Utility.GetTilemapPositionForCoords(1, 1);

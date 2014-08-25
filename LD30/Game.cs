@@ -33,6 +33,7 @@ namespace LD30
         MouseMenu mouseMenu;
         MessageModal messageModal;
         MessageLog messageLog;
+        StartModal startModal;
 
         Guestbook MainIslandGuestbook;
         Guestbook EastIslandGuestbook;
@@ -40,12 +41,16 @@ namespace LD30
         Guestbook SouthIslandGuestbook;
         Guestbook NorthIslandGuestbook;
         Guestbook CaveEntranceGuestbook;
+        Guestbook CaveLDGuestbook;
+        Guestbook CaveBigRoomGuestbook;
         GuestbookModal guestbookModal;
+
+        public Random Random = new Random();
 
         public Game()
             : base(null)
         {
-            MainWindow = new RenderWindow(new VideoMode(1600, 900), "LD30", Styles.Default, new ContextSettings() { AntialiasingLevel = 8 });
+            MainWindow = new RenderWindow(new VideoMode(1024, 768), "Connected Islands", Styles.Default, new ContextSettings() { AntialiasingLevel = 8 });
             //MainWindow.SetFramerateLimit(180u);
             MainWindow.Closed += (s, a) =>
             {
@@ -147,6 +152,24 @@ namespace LD30
             CaveEntranceGuestbook.Name = "Cave entrance guestbook";
             Add(CaveEntranceGuestbook);
 
+            var caveLDGuestbookWorldPos = cave.FindFirstWorldPositionForColor(new Color(133, 0, 255));
+            var caveLDGuestbookLocalPos = cave.FindAllLocalPositionsForColor(new Color(133, 0, 255))[0];
+            cave.Collisions[caveLDGuestbookLocalPos.X, caveLDGuestbookLocalPos.Y] = true;
+            CaveLDGuestbook = new Guestbook(this, new Sprite(ResourceManager.GetResource<Sprite>("guestbookSpr")));
+            CaveLDGuestbook.Position = caveLDGuestbookWorldPos;
+            CaveLDGuestbook.MyWorld = cave;
+            CaveLDGuestbook.Name = "Cave LD30 guestbook";
+            Add(CaveLDGuestbook);
+
+            var caveBigRoomGuestbookWorldPos = cave.FindFirstWorldPositionForColor(new Color(134, 0, 255));
+            var caveBigRoomGuestbookLocalPos = cave.FindAllLocalPositionsForColor(new Color(134, 0, 255))[0];
+            cave.Collisions[caveBigRoomGuestbookLocalPos.X, caveBigRoomGuestbookLocalPos.Y] = true;
+            CaveBigRoomGuestbook = new Guestbook(this, new Sprite(ResourceManager.GetResource<Sprite>("guestbookSpr")));
+            CaveBigRoomGuestbook.Position = caveBigRoomGuestbookWorldPos;
+            CaveBigRoomGuestbook.MyWorld = cave;
+            CaveBigRoomGuestbook.Name = "Cave big room guestbook";
+            Add(CaveBigRoomGuestbook);
+
             currentWorld = overWorld;
 
             player = new Player(this, ResourceManager.GetResource<Sprite>("playerSpr"));
@@ -166,6 +189,11 @@ namespace LD30
             Add(messageLog, 1001);
 
             player.Position = overWorld.SpawnPosition;
+
+            var messageImg = ResourceManager.GetResource<Image>("messageImg");
+            startModal = new StartModal(this, ResourceManager.GetResource<Sprite>("messageSpr"), new Vector2f(messageImg.Size.X, messageImg.Size.Y) * Game.TilemapScale);
+            Add(startModal, 1000);
+            player.Input = false;
 
             return this;
         }
@@ -295,45 +323,52 @@ namespace LD30
         }
 
 #if DEBUG
-        const int maxNetBottles = 10;
+        const int maxNetBottles = 12;
 #else
-        const int maxNetBottles = 2;
+        const int maxNetBottles = 4;
 #endif
 
         private void refreshBottles()
         {
+            List<Vector2f> positions = null;
+
             while (true)
             {
                 var netBottles = gameObjects.Aggregate(new List<GameObject>(), (acc, pair) => { acc.AddRange(pair.Value); return acc; }).Where(obj => obj is ScrollInBottle && (obj as Item).Dropped && (obj as ScrollInBottle).Scroll.ReceiveOnOpen);
                 if (netBottles.Count() >= maxNetBottles)
                     break;
 
-                foreach (var bottlePos in currentWorld.FindAllWorldPositionsForColor(new Color(0, 127, 100)))
+                if (positions == null)
                 {
-                    var topLeftView = MainWindow.MapPixelToCoords(new Vector2i());
-                    var botRightView = MainWindow.MapPixelToCoords(new Vector2i((int)MainWindow.Size.X - 1, (int)MainWindow.Size.Y - 1));
-                    var viewRect = new FloatRect(topLeftView.X, topLeftView.Y, botRightView.X - topLeftView.X, botRightView.Y - topLeftView.Y);
-
-                    if (viewRect.Contains(bottlePos.X, bottlePos.Y))
-                        continue;
-
-                    if (netBottles.Any(obj =>
-                    {
-                        var bottle = obj as ScrollInBottle;
-                        return (bottle.Position - bottlePos).Length() < 100;
-                    }))
-                    {
-                        continue;
-                    }
-
-                    var newBottle = new ScrollInBottle(this);
-                    newBottle.Bottle = new Bottle(this);
-                    newBottle.Scroll = new Scroll(this, null);
-                    newBottle.Scroll.ReceiveOnOpen = true;
-                    newBottle.Dropped = true;
-                    newBottle.Position = bottlePos;
-                    Add(newBottle);
+                    positions = currentWorld.FindAllWorldPositionsForColor(new Color(0, 127, 100));
                 }
+
+                var index = Random.Next(0, positions.Count);
+                var bottlePos = positions[index];
+
+                var topLeftView = MainWindow.MapPixelToCoords(new Vector2i());
+                var botRightView = MainWindow.MapPixelToCoords(new Vector2i((int)MainWindow.Size.X - 1, (int)MainWindow.Size.Y - 1));
+                var viewRect = new FloatRect(topLeftView.X, topLeftView.Y, botRightView.X - topLeftView.X, botRightView.Y - topLeftView.Y);
+
+                if (viewRect.Contains(bottlePos.X, bottlePos.Y))
+                    continue;
+
+                if (netBottles.Any(obj =>
+                {
+                    var bottle = obj as ScrollInBottle;
+                    return (bottle.Position - bottlePos).Length() < 100;
+                }))
+                {
+                    continue;
+                }
+
+                var newBottle = new ScrollInBottle(this);
+                newBottle.Bottle = new Bottle(this);
+                newBottle.Scroll = new Scroll(this, null);
+                newBottle.Scroll.ReceiveOnOpen = true;
+                newBottle.Dropped = true;
+                newBottle.Position = bottlePos;
+                Add(newBottle);
             }
         }
 
@@ -692,6 +727,20 @@ namespace LD30
                     {
                         Remove(guestbookModal);
                         guestbookModal = null;
+                        player.Input = true;
+                    }
+                }
+            }
+
+            if (startModal != null)
+            {
+                if (mouseLeftDown && !lastMouseLeftDown)
+                {
+                    // Pressed close on guestbook modal
+                    if (startModal.CloseButton.WorldRect.Contains(mousePosLocal.X, mousePosLocal.Y))
+                    {
+                        Remove(startModal);
+                        startModal = null;
                         player.Input = true;
                     }
                 }
