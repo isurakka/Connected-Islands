@@ -51,7 +51,7 @@ namespace LD30
             : base(null)
         {
             MainWindow = new RenderWindow(new VideoMode(1024, 768), "Connected Islands", Styles.Default, new ContextSettings() { AntialiasingLevel = 8 });
-            //MainWindow.SetFramerateLimit(180u);
+            MainWindow.SetFramerateLimit(180u);
             MainWindow.Closed += (s, a) =>
             {
                 MainWindow.Close();
@@ -358,7 +358,7 @@ namespace LD30
 #if DEBUG
         const int maxNetBottles = 12;
 #else
-        const int maxNetBottles = 4;
+        const int maxNetBottles = 6;
 #endif
 
         private void refreshBottles()
