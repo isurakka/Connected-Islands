@@ -179,9 +179,6 @@ namespace LD30
             Add(inventory, 2);
 
             inventory.Items.Add(new Bottle(this));
-            inventory.Items.Add(new Bottle(this));
-            inventory.Items.Add(new Bottle(this));
-            inventory.Items.Add(new Scroll(this, new Message()));
             inventory.Items.Add(new Scroll(this, new Message()));
 
             messageLog = new MessageLog(this);
@@ -194,6 +191,42 @@ namespace LD30
             startModal = new StartModal(this, ResourceManager.GetResource<Sprite>("messageSpr"), new Vector2f(messageImg.Size.X, messageImg.Size.Y) * Game.TilemapScale);
             Add(startModal, 1000);
             player.Input = false;
+
+            foreach (var item in overWorld.FindAllWorldPositionsForColor(new Color(0, 127, 255)))
+            {
+                var bottle = new Bottle(this);
+                bottle.Dropped = true;
+                bottle.MyWorld = overWorld;
+                bottle.Position = item;
+                Add(bottle);
+            }
+
+            foreach (var item in overWorld.FindAllWorldPositionsForColor(new Color(255, 127, 0)))
+            {
+                var scroll = new Scroll(this, new Message());
+                scroll.Dropped = true;
+                scroll.MyWorld = overWorld;
+                scroll.Position = item;
+                Add(scroll);
+            }
+
+            foreach (var item in cave.FindAllWorldPositionsForColor(new Color(0, 127, 255)))
+            {
+                var bottle = new Bottle(this);
+                bottle.Dropped = true;
+                bottle.MyWorld = cave;
+                bottle.Position = item;
+                Add(bottle);
+            }
+
+            foreach (var item in cave.FindAllWorldPositionsForColor(new Color(255, 127, 0)))
+            {
+                var scroll = new Scroll(this, new Message());
+                scroll.Dropped = true;
+                scroll.MyWorld = cave;
+                scroll.Position = item;
+                Add(scroll);
+            }
 
             return this;
         }

@@ -66,7 +66,9 @@ namespace LD30
                 Utility.ColorEquals(color, new Color(128, 0, 255)) ||
                 Utility.ColorEquals(color, new Color(129, 0, 255)) ||
                 Utility.ColorEquals(color, new Color(130, 0, 255)) ||
-                Utility.ColorEquals(color, new Color(131, 0, 255)))
+                Utility.ColorEquals(color, new Color(131, 0, 255)) ||
+                Utility.ColorEquals(color, new Color(0, 127, 255)) ||
+                Utility.ColorEquals(color, new Color(255, 127, 0)))
                 return Utility.GetTilemapPositionForCoords(0, 0);
             else if (
                 Utility.ColorEquals(color, Color.Blue) ||
