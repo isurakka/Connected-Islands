@@ -263,6 +263,9 @@ namespace LD30
 
                 sw.Stop();
                 float dt = (float)TimeSpan.FromTicks(sw.ElapsedTicks).TotalSeconds;
+#if __MonoCS__
+                dt = dt / 2f;
+#endif
                 sw.Reset();
                 sw.Start();
 
