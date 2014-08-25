@@ -34,7 +34,7 @@ namespace LD30
             bgSprite.Position = new Vector2f(game.MainWindow.Size.X / 2f, game.MainWindow.Size.Y / 2f) - new Vector2f(size.X / 2f, size.Y / 2f);
             target.Draw(bgSprite);
 
-            var text1 = new Text("You are on a stranded island but you don't\nremember how you got here.\n\nYou can send messages to other people\nusing bottles and scrolls. There are also\n6 guestbooks you can sign.\n\nWASD to move. Right click to open context menu\non items. Left click to choose option.", ResourceManager.GetResource<Font>("font"), 28u);
+            var text1 = new Text("You are on a stranded island but you don't\nremember how you got here.\n\nYou can send messages to other people\nusing bottles and scrolls. There are also\n7 guestbooks you can sign.\n\nWASD to move. Right click to open context menu\non items. Left click to choose option.", ResourceManager.GetResource<Font>("font"), 28u);
             text1.Color = Color.Black;
             text1.Position = bgSprite.Position + new Vector2f(60f, 60f);
             target.Draw(text1);
